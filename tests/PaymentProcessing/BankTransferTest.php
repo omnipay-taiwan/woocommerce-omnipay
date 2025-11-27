@@ -30,8 +30,9 @@ class BankTransferTest extends WP_UnitTestCase
         $this->config_filter_callback = function ($config) {
             return [
                 'gateways' => [
-                    'BankTransfer' => [
-                        'enabled' => true,
+                    [
+                        'omnipay_name' => 'BankTransfer',
+                        'gateway_id' => 'omnipay_banktransfer',
                         'title' => '銀行轉帳',
                         'description' => '使用銀行轉帳付款',
                     ],

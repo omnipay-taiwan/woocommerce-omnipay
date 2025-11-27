@@ -49,8 +49,9 @@ class YiPayTest extends WP_UnitTestCase
         $this->config_filter_callback = function () {
             return [
                 'gateways' => [
-                    'YiPay' => [
-                        'enabled' => true,
+                    [
+                        'omnipay_name' => 'YiPay',
+                        'gateway_id' => 'omnipay_yipay',
                         'title' => 'YiPay 乙禾金流',
                         'description' => '使用 YiPay 乙禾金流付款',
                     ],

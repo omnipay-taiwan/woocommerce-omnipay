@@ -37,8 +37,9 @@ class ECPayTest extends WP_UnitTestCase
         $this->config_filter_callback = function () {
             return [
                 'gateways' => [
-                    'ECPay' => [
-                        'enabled' => true,
+                    [
+                        'omnipay_name' => 'ECPay',
+                        'gateway_id' => 'omnipay_ecpay',
                         'title' => '綠界金流',
                         'description' => '使用綠界金流付款',
                     ],

@@ -43,8 +43,9 @@ class NewebPayTest extends WP_UnitTestCase
         $this->config_filter_callback = function () {
             return [
                 'gateways' => [
-                    'NewebPay' => [
-                        'enabled' => true,
+                    [
+                        'omnipay_name' => 'NewebPay',
+                        'gateway_id' => 'omnipay_newebpay',
                         'title' => '藍新金流',
                         'description' => '使用藍新金流付款',
                     ],

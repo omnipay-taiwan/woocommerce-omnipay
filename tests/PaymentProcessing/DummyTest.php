@@ -24,8 +24,9 @@ class DummyTest extends WP_UnitTestCase
         $this->config_filter_callback = function ($config) {
             return [
                 'gateways' => [
-                    'Dummy' => [
-                        'enabled' => true,
+                    [
+                        'omnipay_name' => 'Dummy',
+                        'gateway_id' => 'omnipay_dummy',
                         'title' => 'Dummy Gateway',
                         'description' => 'Dummy payment gateway for testing',
                     ],
