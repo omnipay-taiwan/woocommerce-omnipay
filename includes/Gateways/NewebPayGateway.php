@@ -37,7 +37,7 @@ class NewebPayGateway extends OmnipayGateway
      */
     protected function handle_payment_info()
     {
-        $gateway = $this->get_omnipay_gateway();
+        $gateway = $this->get_gateway();
         $response = $gateway->getPaymentInfo()->send();
 
         $this->logger->info('get_payment_info: Gateway response', [
@@ -45,7 +45,7 @@ class NewebPayGateway extends OmnipayGateway
             'data' => Helper::maskSensitiveData($response->getData() ?? []),
         ]);
 
-        $order = $this->order_repository->findByTransactionIdOrFail($response->getTransactionId());
+        $order = $this->orders->findByTransactionIdOrFail($response->getTransactionId());
 
         $this->save_payment_info($order, $response->getData());
 

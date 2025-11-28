@@ -11,7 +11,7 @@ class YiPayTest extends TestCase
 {
     protected $gatewayId = 'yipay';
 
-    protected $omnipayName = 'YiPay';
+    protected $gatewayName = 'YiPay';
 
     private $merchantId = '1234567890';
 

@@ -15,14 +15,14 @@ class OmnipayBridge
     /**
      * @var string
      */
-    protected $omnipay_gateway_name;
+    protected $name;
 
     /**
-     * @param  string  $omnipay_gateway_name
+     * @param  string  $name
      */
-    public function __construct($omnipay_gateway_name)
+    public function __construct($name)
     {
-        $this->omnipay_gateway_name = $omnipay_gateway_name;
+        $this->name = $name;
     }
 
     /**
@@ -35,7 +35,7 @@ class OmnipayBridge
      */
     public function createGateway(array $gatewaySettings = [])
     {
-        $gateway = Omnipay::create($this->omnipay_gateway_name);
+        $gateway = Omnipay::create($this->name);
         $parameters = $this->mergeParameters($gateway->getDefaultParameters(), $gatewaySettings);
         $gateway->initialize($parameters);
 
@@ -50,7 +50,7 @@ class OmnipayBridge
     public function getDefaultParameters()
     {
         try {
-            $gateway = Omnipay::create($this->omnipay_gateway_name);
+            $gateway = Omnipay::create($this->name);
 
             return $gateway->getDefaultParameters();
         } catch (\Exception $e) {
@@ -59,7 +59,7 @@ class OmnipayBridge
     }
 
     /**
-     * 合併參數（共用設定 + Gateway 設定）
+     * 合併參數（Gateway 設定 > 共用設定 > Omnipay 預設值）
      *
      * @param  array  $defaultParameters  Omnipay 預設參數
      * @param  array  $gatewaySettings  Gateway 自身的設定
@@ -71,12 +71,12 @@ class OmnipayBridge
         $sharedSettings = $this->getSharedSettings();
 
         foreach ($defaultParameters as $key => $defaultValue) {
-            // 優先使用共用設定
+            // 優先使用 Gateway 設定，其次共用設定
             $settingValue = '';
-            if (isset($sharedSettings[$key]) && $sharedSettings[$key] !== '') {
-                $settingValue = $sharedSettings[$key];
-            } elseif (isset($gatewaySettings[$key]) && $gatewaySettings[$key] !== '') {
+            if (isset($gatewaySettings[$key]) && $gatewaySettings[$key] !== '') {
                 $settingValue = $gatewaySettings[$key];
+            } elseif (isset($sharedSettings[$key]) && $sharedSettings[$key] !== '') {
+                $settingValue = $sharedSettings[$key];
             }
 
             if ($settingValue !== '') {
@@ -110,7 +110,7 @@ class OmnipayBridge
      */
     public function getSharedSettings()
     {
-        return get_option(self::getOptionKey($this->omnipay_gateway_name), []);
+        return get_option(self::getOptionKey($this->name), []);
     }
 
     /**
@@ -130,12 +130,12 @@ class OmnipayBridge
     /**
      * 取得設定的 option key
      *
-     * @param  string  $omnipayName  Omnipay gateway 名稱
+     * @param  string  $name  Gateway 名稱
      * @return string
      */
-    public static function getOptionKey($omnipayName)
+    public static function getOptionKey($name)
     {
-        return 'woocommerce_omnipay_'.strtolower($omnipayName).'_shared_settings';
+        return 'woocommerce_omnipay_'.strtolower($name).'_shared_settings';
     }
 
     /**

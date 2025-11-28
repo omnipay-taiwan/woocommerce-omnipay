@@ -29,7 +29,7 @@ class CreditCardFormTest extends WP_UnitTestCase
             'gateway_id' => 'dummy',
             'title' => 'Dummy Gateway',
             'description' => 'Test payment gateway',
-            'omnipay_name' => 'Dummy',
+            'gateway' => 'Dummy',
         ]);
     }
 

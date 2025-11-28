@@ -11,7 +11,7 @@ class BankTransferTest extends TestCase
 {
     protected $gatewayId = 'banktransfer';
 
-    protected $omnipayName = 'BankTransfer';
+    protected $gatewayName = 'BankTransfer';
 
     protected $settings = [
         'bank_code' => '012',

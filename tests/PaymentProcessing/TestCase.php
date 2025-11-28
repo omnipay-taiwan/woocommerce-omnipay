@@ -15,7 +15,7 @@ abstract class TestCase extends WP_UnitTestCase
 
     protected $gatewayId;
 
-    protected $omnipayName;
+    protected $gatewayName;
 
     protected $settings = [];
 
@@ -29,13 +29,13 @@ abstract class TestCase extends WP_UnitTestCase
         wp_cache_delete('alloptions', 'options');
 
         $gatewayId = $this->gatewayId;
-        $omnipayName = $this->omnipayName;
-        $this->configCallback = function () use ($gatewayId, $omnipayName) {
+        $gatewayName = $this->gatewayName;
+        $this->configCallback = function () use ($gatewayId, $gatewayName) {
             return [
                 'gateways' => [[
-                    'omnipay_name' => $omnipayName,
+                    'gateway' => $gatewayName,
                     'gateway_id' => $gatewayId,
-                    'title' => $omnipayName,
+                    'title' => $gatewayName,
                 ]],
             ];
         };

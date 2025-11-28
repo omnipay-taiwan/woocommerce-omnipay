@@ -192,8 +192,8 @@ function woocommerce_omnipay_add_gateways($gateways)
 
     // 為每個已配置的 gateway 建立實例並註冊
     foreach ($registry->getGateways() as $gateway_info) {
-        $omnipay_name = $gateway_info['omnipay_name'] ?? '';
-        $gateway_class = "\\WooCommerceOmnipay\\Gateways\\{$omnipay_name}Gateway";
+        $name = $gateway_info['gateway'] ?? '';
+        $gateway_class = "\\WooCommerceOmnipay\\Gateways\\{$name}Gateway";
 
         if (! class_exists($gateway_class)) {
             $gateway_class = \WooCommerceOmnipay\Gateways\OmnipayGateway::class;
@@ -213,35 +213,35 @@ function woocommerce_omnipay_add_gateways($gateways)
 function woocommerce_omnipay_get_config()
 {
     // 預設 gateways 配置
-    // 純陣列格式，必須指定 omnipay_name 和 gateway_id
+    // 純陣列格式，必須指定 gateway 和 gateway_id
     $default_config = [
         'gateways' => [
             [
-                'omnipay_name' => 'BankTransfer',
+                'gateway' => 'BankTransfer',
                 'gateway_id' => 'banktransfer',
                 'title' => '銀行轉帳',
                 'description' => '使用銀行轉帳付款',
             ],
             [
-                'omnipay_name' => 'Dummy',
+                'gateway' => 'Dummy',
                 'gateway_id' => 'dummy',
                 'title' => 'Dummy Gateway',
                 'description' => 'Dummy payment gateway for testing',
             ],
             [
-                'omnipay_name' => 'ECPay',
+                'gateway' => 'ECPay',
                 'gateway_id' => 'ecpay',
                 'title' => '綠界金流',
                 'description' => '使用綠界金流付款',
             ],
             [
-                'omnipay_name' => 'NewebPay',
+                'gateway' => 'NewebPay',
                 'gateway_id' => 'newebpay',
                 'title' => '藍新金流',
                 'description' => '使用藍新金流付款',
             ],
             [
-                'omnipay_name' => 'YiPay',
+                'gateway' => 'YiPay',
                 'gateway_id' => 'yipay',
                 'title' => 'YiPay 乙禾金流',
                 'description' => '使用 YiPay 乙禾金流付款',

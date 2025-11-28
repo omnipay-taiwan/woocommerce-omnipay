@@ -8,9 +8,9 @@ namespace WooCommerceOmnipay\Services;
  * 從配置檔載入並註冊 Omnipay gateways
  *
  * 配置格式：純陣列，每個元素包含：
- * - omnipay_name: 必須指定的 Omnipay gateway 名稱
+ * - gateway: 必須指定的 Omnipay gateway 名稱
  * - gateway_id: 必須指定的 WooCommerce gateway ID
- * - title: 選填，預設使用 omnipay_name
+ * - title: 選填，預設使用 gateway
  * - description: 選填，自動產生
  */
 class GatewayRegistry
@@ -37,13 +37,13 @@ class GatewayRegistry
     /**
      * 驗證 gateway 是否已安裝且可用
      *
-     * @param  string  $gateway_name  Omnipay gateway 名稱
+     * @param  string  $name  Omnipay gateway 名稱
      * @return bool
      */
-    public function isGatewayAvailable($gateway_name)
+    public function isGatewayAvailable($name)
     {
         try {
-            \Omnipay\Omnipay::create($gateway_name);
+            \Omnipay\Omnipay::create($name);
 
             return true;
         } catch (\Exception $e) {
@@ -62,24 +62,24 @@ class GatewayRegistry
     {
         $gateways = [];
 
-        foreach ($this->config['gateways'] as $gateway_config) {
-            // 必須有 omnipay_name
-            if (empty($gateway_config['omnipay_name'])) {
+        foreach ($this->config['gateways'] as $config) {
+            // 必須有 gateway
+            if (empty($config['gateway'])) {
                 continue;
             }
 
             // 必須有 gateway_id
-            if (empty($gateway_config['gateway_id'])) {
+            if (empty($config['gateway_id'])) {
                 continue;
             }
 
             // 驗證 Omnipay gateway 是否可用
-            if (! $this->isGatewayAvailable($gateway_config['omnipay_name'])) {
+            if (! $this->isGatewayAvailable($config['gateway'])) {
                 continue;
             }
 
             // 補上預設值
-            $gateways[] = $this->createGatewayInfo($gateway_config);
+            $gateways[] = $this->createGatewayInfo($config);
         }
 
         return $gateways;
@@ -105,11 +105,11 @@ class GatewayRegistry
      */
     protected function createGatewayInfo(array $config)
     {
-        $omnipay_name = $config['omnipay_name'];
+        $name = $config['gateway'];
 
         $defaults = [
-            'title' => $omnipay_name,
-            'description' => $this->generateDescription($config['title'] ?? $omnipay_name),
+            'title' => $name,
+            'description' => $this->generateDescription($config['title'] ?? $name),
         ];
 
         return array_merge($defaults, $config);

@@ -5,11 +5,11 @@ namespace WooCommerceOmnipay\Tests\WooCommerce;
 use WP_UnitTestCase;
 
 /**
- * Gateway Settings Tests
+ * Admin Settings Tests
  *
- * 測試 Gateway 設定管理與效果驗證，包含 Gateway 註冊與初始化
+ * 測試管理後台 Gateway 設定功能，包含表單渲染、設定儲存、啟用/停用
  */
-class SettingsTest extends WP_UnitTestCase
+class AdminSettingsTest extends WP_UnitTestCase
 {
     protected function setUp(): void
     {
@@ -21,39 +21,10 @@ class SettingsTest extends WP_UnitTestCase
         }
     }
 
-    // ==================== 註冊測試 ====================
-
     /**
-     * 測試：配置的 gateway 註冊到 WooCommerce 並能建立 Omnipay 實例
+     * 測試：Gateway 預設有基本欄位
      */
-    public function test_configured_gateways_registered_and_create_omnipay_instance()
-    {
-        $payment_gateways = WC()->payment_gateways->payment_gateways();
-
-        // 驗證預設配置的 gateways 都註冊了
-        $this->assertArrayHasKey('omnipay_dummy', $payment_gateways);
-        $this->assertArrayHasKey('omnipay_ecpay', $payment_gateways);
-
-        // 驗證 gateway 屬性
-        $gateway = $payment_gateways['omnipay_dummy'];
-        $this->assertInstanceOf('WC_Payment_Gateway', $gateway);
-        $this->assertEquals('omnipay_dummy', $gateway->id);
-        $this->assertNotEmpty($gateway->method_title);
-        $this->assertNotEmpty($gateway->method_description);
-
-        // 驗證能建立 Omnipay 實例
-        $omnipayGateway = $gateway->get_omnipay_gateway();
-        $this->assertInstanceOf(
-            \Omnipay\Dummy\Gateway::class,
-            $omnipayGateway,
-            'Should create Omnipay Dummy Gateway instance'
-        );
-    }
-
-    /**
-     * 測試：ECPay Gateway 有從 Omnipay 取得的參數欄位
-     */
-    public function test_ecpay_gateway_has_parameters_from_omnipay()
+    public function test_gateway_has_basic_fields()
     {
         $gateway = WC()->payment_gateways->payment_gateways()['omnipay_ecpay'];
         $form_fields = $gateway->form_fields;
@@ -62,11 +33,8 @@ class SettingsTest extends WP_UnitTestCase
         $this->assertArrayHasKey('enabled', $form_fields);
         $this->assertArrayHasKey('title', $form_fields);
         $this->assertArrayHasKey('description', $form_fields);
-
-        // 驗證 Omnipay ECPay 特定參數
-        $this->assertArrayHasKey('MerchantID', $form_fields, 'Should have MerchantID field from Omnipay');
-        $this->assertArrayHasKey('HashKey', $form_fields, 'Should have HashKey field from Omnipay');
-        $this->assertArrayHasKey('HashIV', $form_fields, 'Should have HashIV field from Omnipay');
+        $this->assertArrayHasKey('allow_resubmit', $form_fields);
+        $this->assertArrayHasKey('transaction_id_prefix', $form_fields);
     }
 
     // ==================== 設定測試 ====================
@@ -141,14 +109,12 @@ class SettingsTest extends WP_UnitTestCase
         // 清除現有設定
         delete_option('woocommerce_'.$gateway->id.'_settings');
 
-        // 模擬 POST 資料
+        // 模擬 POST 資料（只有基本欄位，不包含 Omnipay 參數）
         $_POST = [
             'woocommerce_'.$gateway->id.'_enabled' => 'yes',
             'woocommerce_'.$gateway->id.'_title' => 'Test ECPay',
             'woocommerce_'.$gateway->id.'_description' => 'Test Description',
-            'woocommerce_'.$gateway->id.'_MerchantID' => 'test_merchant',
-            'woocommerce_'.$gateway->id.'_HashKey' => 'test_key',
-            'woocommerce_'.$gateway->id.'_HashIV' => 'test_iv',
+            'woocommerce_'.$gateway->id.'_transaction_id_prefix' => 'TEST_',
         ];
 
         // 執行儲存（WooCommerce 會調用 process_admin_options）
@@ -159,16 +125,14 @@ class SettingsTest extends WP_UnitTestCase
             'gateway_id' => 'ecpay',
             'title' => 'ECPay',
             'description' => '綠界金流',
-            'omnipay_name' => 'ECPay',
+            'gateway' => 'ECPay',
         ]);
 
         // 驗證設定已儲存
         $this->assertEquals('yes', $reloaded_gateway->get_option('enabled'));
         $this->assertEquals('Test ECPay', $reloaded_gateway->get_option('title'));
         $this->assertEquals('Test Description', $reloaded_gateway->get_option('description'));
-        $this->assertEquals('test_merchant', $reloaded_gateway->get_option('MerchantID'));
-        $this->assertEquals('test_key', $reloaded_gateway->get_option('HashKey'));
-        $this->assertEquals('test_iv', $reloaded_gateway->get_option('HashIV'));
+        $this->assertEquals('TEST_', $reloaded_gateway->get_option('transaction_id_prefix'));
 
         // 清理
         $_POST = [];
@@ -185,17 +149,17 @@ class SettingsTest extends WP_UnitTestCase
         // 清除現有設定
         delete_option('woocommerce_'.$gateway->id.'_settings');
 
-        // 測試勾選的情況
+        // 測試勾選的情況（使用 allow_resubmit 欄位）
         $_POST = [
-            'woocommerce_'.$gateway->id.'_testMode' => 'yes',
+            'woocommerce_'.$gateway->id.'_allow_resubmit' => 'yes',
         ];
 
         $gateway->process_admin_options();
         $reloaded_gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
             'gateway_id' => 'ecpay',
-            'omnipay_name' => 'ECPay',
+            'gateway' => 'ECPay',
         ]);
-        $this->assertEquals('yes', $reloaded_gateway->get_option('testMode'));
+        $this->assertEquals('yes', $reloaded_gateway->get_option('allow_resubmit'));
 
         // 測試未勾選的情況（checkbox 未勾選時不會出現在 POST 資料中）
         $_POST = [];
@@ -203,77 +167,13 @@ class SettingsTest extends WP_UnitTestCase
         $gateway->process_admin_options();
         $reloaded_gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
             'gateway_id' => 'ecpay',
-            'omnipay_name' => 'ECPay',
+            'gateway' => 'ECPay',
         ]);
-        $this->assertEquals('no', $reloaded_gateway->get_option('testMode'));
+        $this->assertEquals('no', $reloaded_gateway->get_option('allow_resubmit'));
 
         // 清理
         $_POST = [];
         delete_option('woocommerce_'.$gateway->id.'_settings');
-    }
-
-    /**
-     * 測試：ECPay Gateway 設定參數能傳遞給 Omnipay
-     */
-    public function test_ecpay_gateway_passes_settings_to_omnipay()
-    {
-        // 設定 ECPay 參數
-        $settings = [
-            'MerchantID' => 'test_merchant_id',
-            'HashKey' => 'test_hash_key',
-            'HashIV' => 'test_hash_iv',
-        ];
-        update_option('woocommerce_omnipay_ecpay_settings', $settings);
-
-        // 重新建立 gateway
-        $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
-            'gateway_id' => 'ecpay',
-            'omnipay_name' => 'ECPay',
-        ]);
-        $omnipayGateway = $gateway->get_omnipay_gateway();
-
-        // 驗證參數正確傳遞
-        $this->assertEquals('test_merchant_id', $omnipayGateway->getMerchantID());
-        $this->assertEquals('test_hash_key', $omnipayGateway->getHashKey());
-        $this->assertEquals('test_hash_iv', $omnipayGateway->getHashIV());
-
-        // 清理
-        delete_option('woocommerce_omnipay_ecpay_settings');
-    }
-
-    /**
-     * 測試：不同 Gateway 的設定互不影響
-     */
-    public function test_different_gateways_have_separate_settings()
-    {
-        // 設定 Dummy gateway
-        update_option('woocommerce_omnipay_dummy_settings', [
-            'title' => 'Dummy Title',
-        ]);
-
-        // 設定 ECPay gateway
-        update_option('woocommerce_omnipay_ecpay_settings', [
-            'title' => 'ECPay Title',
-            'MerchantID' => 'test_merchant',
-        ]);
-
-        // 建立兩個 gateway 實例
-        $dummyGateway = new \WooCommerceOmnipay\Gateways\DummyGateway([
-            'gateway_id' => 'dummy',
-            'omnipay_name' => 'Dummy',
-        ]);
-        $ecpayGateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
-            'gateway_id' => 'ecpay',
-            'omnipay_name' => 'ECPay',
-        ]);
-
-        // 驗證設定獨立
-        $this->assertEquals('Dummy Title', $dummyGateway->title);
-        $this->assertEquals('ECPay Title', $ecpayGateway->title);
-
-        // ECPay 有 MerchantID，Dummy 沒有
-        $this->assertEquals('test_merchant', $ecpayGateway->get_option('MerchantID'));
-        $this->assertEmpty($dummyGateway->get_option('MerchantID'));
     }
 
     /**
@@ -314,11 +214,113 @@ class SettingsTest extends WP_UnitTestCase
         $this->assertArrayNotHasKey('omnipay_dummy', $available_gateways);
     }
 
+    // ==================== 設定優先順序測試 ====================
+
+    /**
+     * 測試：Gateway 設定優先於共用設定
+     */
+    public function test_gateway_settings_override_shared_settings()
+    {
+        // 共用設定
+        update_option('woocommerce_omnipay_ecpay_shared_settings', [
+            'MerchantID' => 'shared_merchant',
+            'HashKey' => 'shared_key',
+            'HashIV' => 'shared_iv',
+        ]);
+
+        // Gateway 設定覆蓋 MerchantID
+        update_option('woocommerce_omnipay_ecpay_settings', [
+            'MerchantID' => 'gateway_merchant',
+        ]);
+
+        $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
+            'gateway_id' => 'ecpay',
+            'gateway' => 'ECPay',
+        ]);
+        $omnipayGateway = $gateway->get_gateway();
+
+        // Gateway 設定優先
+        $this->assertEquals('gateway_merchant', $omnipayGateway->getMerchantID());
+        // 未覆蓋的使用共用設定
+        $this->assertEquals('shared_key', $omnipayGateway->getHashKey());
+        $this->assertEquals('shared_iv', $omnipayGateway->getHashIV());
+    }
+
+    /**
+     * 測試：共用設定作為 fallback
+     */
+    public function test_shared_settings_used_as_fallback()
+    {
+        // 只有共用設定
+        update_option('woocommerce_omnipay_ecpay_shared_settings', [
+            'MerchantID' => 'shared_merchant',
+            'HashKey' => 'shared_key',
+            'HashIV' => 'shared_iv',
+        ]);
+
+        // Gateway 沒有設定
+        delete_option('woocommerce_omnipay_ecpay_settings');
+
+        $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
+            'gateway_id' => 'ecpay',
+            'gateway' => 'ECPay',
+        ]);
+        $omnipayGateway = $gateway->get_gateway();
+
+        $this->assertEquals('shared_merchant', $omnipayGateway->getMerchantID());
+        $this->assertEquals('shared_key', $omnipayGateway->getHashKey());
+        $this->assertEquals('shared_iv', $omnipayGateway->getHashIV());
+    }
+
+    /**
+     * 測試：預設不顯示 Omnipay 參數欄位
+     */
+    public function test_omnipay_fields_hidden_by_default()
+    {
+        // 使用預設 config（override_settings 未設定或為 false）
+        $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
+            'gateway_id' => 'test_hidden',
+            'gateway' => 'ECPay',
+        ]);
+
+        $form_fields = $gateway->form_fields;
+
+        // 不應該有 Omnipay 參數欄位
+        $this->assertArrayNotHasKey('MerchantID', $form_fields);
+        $this->assertArrayNotHasKey('HashKey', $form_fields);
+        $this->assertArrayNotHasKey('HashIV', $form_fields);
+
+        // 但應該有基本欄位
+        $this->assertArrayHasKey('enabled', $form_fields);
+        $this->assertArrayHasKey('title', $form_fields);
+        $this->assertArrayHasKey('description', $form_fields);
+    }
+
+    /**
+     * 測試：override_settings = true 時顯示 Omnipay 參數欄位
+     */
+    public function test_omnipay_fields_shown_when_override_settings_enabled()
+    {
+        $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
+            'gateway_id' => 'test_shown',
+            'gateway' => 'ECPay',
+            'override_settings' => true,
+        ]);
+
+        $form_fields = $gateway->form_fields;
+
+        // 應該有 Omnipay 參數欄位
+        $this->assertArrayHasKey('MerchantID', $form_fields);
+        $this->assertArrayHasKey('HashKey', $form_fields);
+        $this->assertArrayHasKey('HashIV', $form_fields);
+    }
+
     protected function tearDown(): void
     {
         $_POST = [];
         delete_option('woocommerce_omnipay_dummy_settings');
         delete_option('woocommerce_omnipay_ecpay_settings');
+        delete_option('woocommerce_omnipay_ecpay_shared_settings');
         parent::tearDown();
     }
 }

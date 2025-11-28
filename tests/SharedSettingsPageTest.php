@@ -13,8 +13,8 @@ class SharedSettingsPageTest extends WP_UnitTestCase
     {
         parent::setUp();
         $this->page = new SharedSettingsPage([
-            ['omnipay_name' => 'ECPay'],
-            ['omnipay_name' => 'NewebPay'],
+            ['gateway' => 'ECPay'],
+            ['gateway' => 'NewebPay'],
         ]);
     }
 

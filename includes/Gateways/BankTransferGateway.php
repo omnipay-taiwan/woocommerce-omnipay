@@ -125,7 +125,7 @@ class BankTransferGateway extends OmnipayGateway
         }
 
         // 驗證訂單
-        $order = $this->order_repository->findById($order_id);
+        $order = $this->orders->findById($order_id);
         if (! $order || $order->get_order_key() !== $order_key) {
             $this->send_json_response(false, __('訂單驗證失敗', 'woocommerce-omnipay'));
 

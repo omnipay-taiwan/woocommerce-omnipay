@@ -26,12 +26,12 @@ class SharedSettingsPage
      */
     public function __construct(array $gateways)
     {
-        // 取得不重複的 omnipay_name 列表
+        // 取得不重複的 gateway 列表
         $seen = [];
         $this->gateways = [];
 
         foreach ($gateways as $gateway) {
-            $name = $gateway['omnipay_name'] ?? '';
+            $name = $gateway['gateway'] ?? '';
             if (! empty($name) && ! isset($seen[$name])) {
                 $this->gateways[] = $gateway;
                 $seen[$name] = true;
@@ -73,7 +73,7 @@ class SharedSettingsPage
         $sections = [];
 
         foreach ($this->gateways as $gateway) {
-            $name = $gateway['omnipay_name'];
+            $name = $gateway['gateway'];
             $key = strtolower($name);
             $sections[$key] = $name;
         }
@@ -153,20 +153,20 @@ class SharedSettingsPage
      */
     public function get_settings($section)
     {
-        $omnipay_name = $this->get_omnipay_name_by_section($section);
+        $name = $this->get_name_by_section($section);
 
-        if (! $omnipay_name) {
+        if (! $name) {
             return [];
         }
 
-        $option_key = OmnipayBridge::getOptionKey($omnipay_name);
-        $bridge = $this->get_bridge($omnipay_name);
+        $option_key = OmnipayBridge::getOptionKey($name);
+        $bridge = $this->get_bridge($name);
 
         $fields = [
             [
-                'title' => sprintf('%s 共用設定', $omnipay_name),
+                'title' => sprintf('%s 共用設定', $name),
                 'type' => 'title',
-                'desc' => sprintf('設定 %s 的共用參數，這些設定會套用到所有 %s 付款方式。', $omnipay_name, $omnipay_name),
+                'desc' => sprintf('設定 %s 的共用參數，這些設定會套用到所有 %s 付款方式。', $name, $name),
                 'id' => 'omnipay_'.$section.'_options',
             ],
         ];
@@ -203,15 +203,15 @@ class SharedSettingsPage
     }
 
     /**
-     * 根據 section 取得 omnipay_name
+     * 根據 section 取得 gateway name
      *
      * @param  string  $section
      * @return string|null
      */
-    private function get_omnipay_name_by_section($section)
+    private function get_name_by_section($section)
     {
         foreach ($this->gateways as $gateway) {
-            $name = $gateway['omnipay_name'];
+            $name = $gateway['gateway'];
             if (strtolower($name) === $section) {
                 return $name;
             }
@@ -223,16 +223,16 @@ class SharedSettingsPage
     /**
      * 取得 OmnipayBridge 實例
      *
-     * @param  string  $omnipay_name
+     * @param  string  $name
      * @return OmnipayBridge
      */
-    private function get_bridge($omnipay_name)
+    private function get_bridge($name)
     {
-        if (! isset($this->bridges[$omnipay_name])) {
-            $this->bridges[$omnipay_name] = new OmnipayBridge($omnipay_name);
+        if (! isset($this->bridges[$name])) {
+            $this->bridges[$name] = new OmnipayBridge($name);
         }
 
-        return $this->bridges[$omnipay_name];
+        return $this->bridges[$name];
     }
 
     /**
