@@ -756,7 +756,9 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         // allow_resubmit = no 時，訂單應該是 on-hold
         // allow_resubmit = yes 時，訂單應該是 pending
-        return $this->get_effective_option('allow_resubmit') === 'yes' ? 'pending' : 'on-hold';
+        return $this->get_effective_option('allow_resubmit') === 'yes'
+            ? OrderRepository::STATUS_PENDING
+            : OrderRepository::STATUS_ON_HOLD;
     }
 
     /**

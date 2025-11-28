@@ -12,6 +12,15 @@ use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
 class OrderRepository
 {
     /**
+     * Order status constants
+     */
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_ON_HOLD = 'on-hold';
+
+    public const STATUS_FAILED = 'failed';
+
+    /**
      * Meta keys
      */
     public const META_TRANSACTION_ID = '_omnipay_transaction_id';
