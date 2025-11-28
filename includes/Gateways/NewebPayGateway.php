@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Gateways;
 
+use WooCommerceOmnipay\Helper;
+
 /**
  * NewebPay Gateway
  *
@@ -40,7 +42,7 @@ class NewebPayGateway extends OmnipayGateway
 
         $this->logger->info('get_payment_info: Gateway response', [
             'transaction_id' => $response->getTransactionId(),
-            'data' => $this->mask_sensitive_data($response->getData() ?? []),
+            'data' => Helper::maskSensitiveData($response->getData() ?? []),
         ]);
 
         $order = $this->order_repository->findByTransactionIdOrFail($response->getTransactionId());

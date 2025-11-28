@@ -7,6 +7,7 @@ use Psr\Log\LoggerInterface;
 use WC_Payment_Gateway;
 use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
 use WooCommerceOmnipay\Gateways\Traits\DisplaysPaymentInfo;
+use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 use WooCommerceOmnipay\Services\OmnipayBridge;
 use WooCommerceOmnipay\Services\WooCommerceLogger;
@@ -107,7 +108,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         $value = parent::get_option($key, $empty_value);
 
-        return OmnipayBridge::sanitizeOptionValue($value);
+        return Helper::sanitizeOptionValue($value);
     }
 
     /**
@@ -228,7 +229,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'redirect' => $response->isRedirect(),
                 'message' => $response->getMessage(),
                 'transaction_reference' => $response->getTransactionReference(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
             // 處理回應
@@ -498,7 +499,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'transaction_id' => $response->getTransactionId(),
                 'successful' => $response->isSuccessful(),
                 'message' => $response->getMessage(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
             $this->handle_complete_purchase_callback($response);
@@ -564,7 +565,7 @@ class OmnipayGateway extends WC_Payment_Gateway
 
         $this->logger->info('get_payment_info: Parsed notification', [
             'transaction_id' => $notification->getTransactionId(),
-            'data' => $this->mask_sensitive_data($notification->getData() ?? []),
+            'data' => Helper::maskSensitiveData($notification->getData() ?? []),
         ]);
 
         $order = $this->order_repository->findByTransactionIdOrFail($notification->getTransactionId());
@@ -597,7 +598,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'transaction_id' => $response->getTransactionId(),
                 'successful' => $response->isSuccessful(),
                 'message' => $response->getMessage(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
             $order = $this->order_repository->findByTransactionIdOrFail($response->getTransactionId());
@@ -832,27 +833,6 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function get_request_data()
     {
-        return $this->mask_sensitive_data($_POST);
-    }
-
-    /**
-     * 遮蔽敏感資料
-     *
-     * @param  array  $data  原始資料
-     * @return array 遮蔽後的資料
-     */
-    protected function mask_sensitive_data(array $data)
-    {
-        $sensitive_keys = ['HashKey', 'HashIV', 'cvv', 'number', 'card_number', 'password', 'secret'];
-
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $data[$key] = $this->mask_sensitive_data($value);
-            } elseif (in_array(strtolower($key), array_map('strtolower', $sensitive_keys), true)) {
-                $data[$key] = '***';
-            }
-        }
-
-        return $data;
+        return Helper::maskSensitiveData($_POST);
     }
 }

@@ -3,6 +3,7 @@
 namespace WooCommerceOmnipay\Services;
 
 use Omnipay\Omnipay;
+use WooCommerceOmnipay\Helper;
 
 /**
  * Omnipay Bridge
@@ -79,7 +80,7 @@ class OmnipayBridge
             }
 
             if ($settingValue !== '') {
-                $parameters[$key] = self::convertOptionValue($settingValue, $defaultValue);
+                $parameters[$key] = Helper::convertOptionValue($settingValue, $defaultValue);
             }
         }
 
@@ -135,37 +136,6 @@ class OmnipayBridge
     public static function getOptionKey($omnipayName)
     {
         return 'woocommerce_omnipay_'.strtolower($omnipayName).'_shared_settings';
-    }
-
-    /**
-     * 確保 option 值為字串
-     *
-     * @param  mixed  $value
-     * @return string
-     */
-    public static function sanitizeOptionValue($value)
-    {
-        if (is_array($value)) {
-            return ! empty($value) ? (string) reset($value) : '';
-        }
-
-        return $value !== null ? (string) $value : '';
-    }
-
-    /**
-     * 轉換 WooCommerce option 值為 Omnipay 參數值
-     *
-     * @param  string  $settingValue  WC 設定值
-     * @param  mixed  $defaultValue  Omnipay 預設值（用於判斷類型）
-     * @return mixed
-     */
-    public static function convertOptionValue($settingValue, $defaultValue)
-    {
-        if (is_bool($defaultValue)) {
-            return $settingValue === 'yes';
-        }
-
-        return $settingValue;
     }
 
     /**

@@ -1,0 +1,63 @@
+<?php
+
+namespace WooCommerceOmnipay;
+
+/**
+ * Helper
+ *
+ * 通用輔助方法
+ */
+class Helper
+{
+    /**
+     * 確保 option 值為字串
+     *
+     * @param  mixed  $value
+     * @return string
+     */
+    public static function sanitizeOptionValue($value)
+    {
+        if (is_array($value)) {
+            return ! empty($value) ? (string) reset($value) : '';
+        }
+
+        return $value !== null ? (string) $value : '';
+    }
+
+    /**
+     * 轉換 WooCommerce option 值為 Omnipay 參數值
+     *
+     * @param  string  $settingValue  WC 設定值
+     * @param  mixed  $defaultValue  Omnipay 預設值（用於判斷類型）
+     * @return mixed
+     */
+    public static function convertOptionValue($settingValue, $defaultValue)
+    {
+        if (is_bool($defaultValue)) {
+            return $settingValue === 'yes';
+        }
+
+        return $settingValue;
+    }
+
+    /**
+     * 遮蔽敏感資料
+     *
+     * @param  array  $data  原始資料
+     * @return array 遮蔽後的資料
+     */
+    public static function maskSensitiveData(array $data)
+    {
+        $sensitiveKeys = ['HashKey', 'HashIV', 'cvv', 'number', 'card_number', 'password', 'secret'];
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = self::maskSensitiveData($value);
+            } elseif (in_array(strtolower($key), array_map('strtolower', $sensitiveKeys), true)) {
+                $data[$key] = '***';
+            }
+        }
+
+        return $data;
+    }
+}
