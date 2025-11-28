@@ -60,16 +60,16 @@ class OrderRepository
     /**
      * 用 order ID 查詢訂單
      *
-     * @param  int|null  $order_id
+     * @param  int|null  $orderId
      * @return \WC_Order|null
      */
-    public function findById($order_id)
+    public function findById($orderId)
     {
-        if (empty($order_id)) {
+        if (empty($orderId)) {
             return null;
         }
 
-        $order = wc_get_order($order_id);
+        $order = wc_get_order($orderId);
 
         return $order ?: null;
     }
@@ -77,17 +77,17 @@ class OrderRepository
     /**
      * 用 order ID 查詢訂單，找不到則丟出例外
      *
-     * @param  int|null  $order_id
+     * @param  int|null  $orderId
      * @return \WC_Order
      *
      * @throws OrderNotFoundException
      */
-    public function findByIdOrFail($order_id)
+    public function findByIdOrFail($orderId)
     {
-        $order = $this->findById($order_id);
+        $order = $this->findById($orderId);
 
         if (! $order) {
-            throw new OrderNotFoundException($order_id);
+            throw new OrderNotFoundException($orderId);
         }
 
         return $order;
@@ -96,18 +96,18 @@ class OrderRepository
     /**
      * 用 transactionId 查詢訂單
      *
-     * @param  string|null  $transaction_id
+     * @param  string|null  $transactionId
      * @return \WC_Order|null
      */
-    public function findByTransactionId($transaction_id)
+    public function findByTransactionId($transactionId)
     {
-        if (empty($transaction_id)) {
+        if (empty($transactionId)) {
             return null;
         }
 
         $orders = wc_get_orders([
             'meta_key' => self::META_TRANSACTION_ID,
-            'meta_value' => $transaction_id,
+            'meta_value' => $transactionId,
             'limit' => 1,
         ]);
 
@@ -117,17 +117,17 @@ class OrderRepository
     /**
      * 用 transactionId 查詢訂單，找不到則丟出例外
      *
-     * @param  string|null  $transaction_id
+     * @param  string|null  $transactionId
      * @return \WC_Order
      *
      * @throws OrderNotFoundException
      */
-    public function findByTransactionIdOrFail($transaction_id)
+    public function findByTransactionIdOrFail($transactionId)
     {
-        $order = $this->findByTransactionId($transaction_id);
+        $order = $this->findByTransactionId($transactionId);
 
         if (! $order) {
-            throw new OrderNotFoundException($transaction_id);
+            throw new OrderNotFoundException($transactionId);
         }
 
         return $order;
@@ -137,12 +137,12 @@ class OrderRepository
      * 儲存 transactionId 到訂單
      *
      * @param  \WC_Order  $order
-     * @param  string  $transaction_id
+     * @param  string  $transactionId
      * @return void
      */
-    public function saveTransactionId($order, $transaction_id)
+    public function saveTransactionId($order, $transactionId)
     {
-        $order->update_meta_data(self::META_TRANSACTION_ID, $transaction_id);
+        $order->update_meta_data(self::META_TRANSACTION_ID, $transactionId);
         $order->save();
     }
 

@@ -70,32 +70,32 @@ trait DisplaysPaymentInfo
      * 在 Email 通知顯示付款資訊
      *
      * @param  \WC_Order  $order
-     * @param  bool  $sent_to_admin
-     * @param  bool  $plain_text
+     * @param  bool  $sentToAdmin
+     * @param  bool  $plainText
      */
-    public function display_payment_info_on_email($order, $sent_to_admin, $plain_text)
+    public function display_payment_info_on_email($order, $sentToAdmin, $plainText)
     {
         if ($order->get_payment_method() !== $this->id) {
             return;
         }
 
-        echo $this->getPaymentInfoOutput($order, $plain_text);
+        echo $this->getPaymentInfoOutput($order, $plainText);
     }
 
     /**
      * 取得付款資訊輸出
      *
      * @param  \WC_Order  $order
-     * @param  bool  $plain_text  是否為純文字格式
+     * @param  bool  $plainText  是否為純文字格式
      * @return string
      */
-    public function getPaymentInfoOutput($order, $plain_text = false)
+    public function getPaymentInfoOutput($order, $plainText = false)
     {
-        $payment_info = $this->orders->getPaymentInfo($order);
-        $template = $plain_text ? 'order/payment-info-plain.php' : 'order/payment-info.php';
+        $paymentInfo = $this->orders->getPaymentInfo($order);
+        $template = $plainText ? 'order/payment-info-plain.php' : 'order/payment-info.php';
 
         return woocommerce_omnipay_get_template($template, [
-            'payment_info' => $payment_info,
+            'payment_info' => $paymentInfo,
             'labels' => OrderRepository::getPaymentInfoLabels(),
         ]);
     }

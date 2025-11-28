@@ -14,9 +14,9 @@ class BankTransferGateway extends OmnipayGateway
     /**
      * Constructor
      */
-    public function __construct(array $gateway_config = [])
+    public function __construct(array $config)
     {
-        parent::__construct($gateway_config);
+        parent::__construct($config);
 
         // 註冊匯款帳號後5碼的 AJAX 處理
         add_action('woocommerce_api_'.$this->id.'_remittance', [$this, 'handleRemittance']);
@@ -71,15 +71,15 @@ class BankTransferGateway extends OmnipayGateway
      * 取得付款資訊輸出（含匯款帳號後5碼表單）
      *
      * @param  \WC_Order  $order
-     * @param  bool  $plain_text
+     * @param  bool  $plainText
      * @return string
      */
-    public function getPaymentInfoOutput($order, $plain_text = false)
+    public function getPaymentInfoOutput($order, $plainText = false)
     {
-        $output = parent::getPaymentInfoOutput($order, $plain_text);
+        $output = parent::getPaymentInfoOutput($order, $plainText);
 
         // 純文字模式或非此 gateway 的訂單不顯示表單
-        if ($plain_text || $order->get_payment_method() !== $this->id) {
+        if ($plainText || $order->get_payment_method() !== $this->id) {
             return $output;
         }
 
