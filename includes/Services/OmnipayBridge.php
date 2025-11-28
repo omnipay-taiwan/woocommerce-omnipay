@@ -4,6 +4,11 @@ namespace WooCommerceOmnipay\Services;
 
 use Omnipay\Omnipay;
 
+/**
+ * Omnipay Bridge
+ *
+ * 橋接 WooCommerce 與 Omnipay，整合 Gateway 的建立與設定管理
+ */
 class OmnipayBridge
 {
     /**
@@ -17,22 +22,6 @@ class OmnipayBridge
     public function __construct($omnipay_gateway_name)
     {
         $this->omnipay_gateway_name = $omnipay_gateway_name;
-    }
-
-    /**
-     * 從 Omnipay Gateway 產生 WooCommerce 設定欄位
-     *
-     * @return array
-     */
-    public function buildFormFields()
-    {
-        $fields = [];
-
-        foreach ($this->getDefaultParameters() as $key => $value) {
-            $fields[$key] = $this->createFieldFromParameter($key, $value);
-        }
-
-        return $fields;
     }
 
     /**
@@ -65,6 +54,57 @@ class OmnipayBridge
     }
 
     /**
+     * 從 Omnipay Gateway 產生 WooCommerce 設定欄位
+     *
+     * @return array
+     */
+    public function buildFormFields()
+    {
+        $fields = [];
+
+        foreach ($this->getDefaultParameters() as $key => $value) {
+            $fields[$key] = $this->createFieldFromParameter($key, $value);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * 取得共用設定
+     *
+     * @return array
+     */
+    public function getSharedSettings()
+    {
+        return get_option(self::getOptionKey($this->omnipay_gateway_name), []);
+    }
+
+    /**
+     * 取得單一共用設定值
+     *
+     * @param  string  $key  設定鍵
+     * @param  mixed  $default  預設值
+     * @return mixed
+     */
+    public function getSharedValue($key, $default = '')
+    {
+        $settings = $this->getSharedSettings();
+
+        return $settings[$key] ?? $default;
+    }
+
+    /**
+     * 取得設定的 option key
+     *
+     * @param  string  $omnipayName  Omnipay gateway 名稱
+     * @return string
+     */
+    public static function getOptionKey($omnipayName)
+    {
+        return 'woocommerce_omnipay_'.strtolower($omnipayName).'_shared_settings';
+    }
+
+    /**
      * 確保 option 值為字串
      *
      * @param  mixed  $value
@@ -88,7 +128,6 @@ class OmnipayBridge
      */
     public static function convertOptionValue($settingValue, $defaultValue)
     {
-        // checkbox 值轉換為 boolean
         if (is_bool($defaultValue)) {
             return $settingValue === 'yes';
         }

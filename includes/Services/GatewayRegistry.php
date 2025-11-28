@@ -1,6 +1,6 @@
 <?php
 
-namespace WooCommerceOmnipay;
+namespace WooCommerceOmnipay\Services;
 
 /**
  * Gateway Registry

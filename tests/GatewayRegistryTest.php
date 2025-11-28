@@ -2,7 +2,7 @@
 
 namespace WooCommerceOmnipay\Tests;
 
-use WooCommerceOmnipay\GatewayRegistry;
+use WooCommerceOmnipay\Services\GatewayRegistry;
 use WP_UnitTestCase;
 
 /**

@@ -159,7 +159,7 @@ class SharedSettingsPage
             return [];
         }
 
-        $option_key = SharedSettings::getOptionKey($omnipay_name);
+        $option_key = OmnipayBridge::getOptionKey($omnipay_name);
         $bridge = $this->get_bridge($omnipay_name);
 
         $fields = [

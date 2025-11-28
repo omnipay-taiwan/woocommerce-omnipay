@@ -129,7 +129,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         }
 
         // Fallback 到共用設定
-        return \WooCommerceOmnipay\SharedSettings::getValue($this->omnipay_gateway_name, $key, $default);
+        return $this->omnipay_bridge->getSharedValue($key, $default);
     }
 
     /**
@@ -206,7 +206,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     protected function get_omnipay_parameters()
     {
         $parameters = [];
-        $shared_settings = \WooCommerceOmnipay\SharedSettings::get($this->omnipay_gateway_name);
+        $shared_settings = $this->omnipay_bridge->getSharedSettings();
 
         foreach ($this->omnipay_bridge->getDefaultParameters() as $key => $default_value) {
             // 優先使用共用設定

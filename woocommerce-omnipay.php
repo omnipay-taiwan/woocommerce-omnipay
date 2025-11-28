@@ -186,7 +186,7 @@ function woocommerce_omnipay_render_redirect_form(array $redirect_data)
 function woocommerce_omnipay_add_gateways($gateways)
 {
     // 使用 GatewayRegistry 載入 gateways
-    $registry = new \WooCommerceOmnipay\GatewayRegistry(
+    $registry = new \WooCommerceOmnipay\Services\GatewayRegistry(
         woocommerce_omnipay_get_config()
     );
 
