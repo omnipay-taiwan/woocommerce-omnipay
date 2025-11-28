@@ -150,7 +150,7 @@ function woocommerce_omnipay_maybe_render_redirect_form()
         'data' => $redirectData['data'],
     ]);
 
-    if (! defined('WP_TESTS_DOMAIN')) {
+    if (apply_filters('woocommerce_omnipay_should_exit', true)) {
         exit;
     }
 }
