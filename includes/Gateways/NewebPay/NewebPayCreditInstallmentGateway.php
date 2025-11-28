@@ -17,13 +17,6 @@ class NewebPayCreditInstallmentGateway extends NewebPayGateway
     protected $paymentType = 'CREDIT';
 
     /**
-     * 預設分期期數
-     *
-     * @var string
-     */
-    protected $defaultInstallments = '3,6,12,18,24';
-
-    /**
      * Constructor
      *
      * @param  array  $config  Gateway 配置
@@ -44,13 +37,53 @@ class NewebPayCreditInstallmentGateway extends NewebPayGateway
     {
         parent::init_form_fields();
 
+        $this->form_fields['min_amount'] = [
+            'title' => __('最小訂單金額', 'woocommerce-omnipay'),
+            'type' => 'number',
+            'description' => __('訂單金額低於此值時不顯示此付款方式（0 = 無限制）', 'woocommerce-omnipay'),
+            'default' => '0',
+            'desc_tip' => true,
+            'custom_attributes' => ['min' => '0'],
+        ];
+
         $this->form_fields['installments'] = [
             'title' => __('分期期數', 'woocommerce-omnipay'),
-            'type' => 'text',
-            'description' => __('可用的分期期數，以逗號分隔（例如：3,6,12,18,24）', 'woocommerce-omnipay'),
-            'default' => $this->defaultInstallments,
+            'type' => 'multiselect',
+            'class' => 'wc-enhanced-select',
+            'description' => __('選擇可用的分期期數', 'woocommerce-omnipay'),
+            'default' => ['3', '6', '12', '18', '24'],
             'desc_tip' => true,
+            'options' => [
+                '3' => __('3 期', 'woocommerce-omnipay'),
+                '6' => __('6 期', 'woocommerce-omnipay'),
+                '12' => __('12 期', 'woocommerce-omnipay'),
+                '18' => __('18 期', 'woocommerce-omnipay'),
+                '24' => __('24 期', 'woocommerce-omnipay'),
+                '30' => __('30 期', 'woocommerce-omnipay'),
+            ],
         ];
+    }
+
+    /**
+     * 檢查付款方式是否可用
+     *
+     * @return bool
+     */
+    public function is_available()
+    {
+        if (! parent::is_available()) {
+            return false;
+        }
+
+        $minAmount = (int) $this->get_option('min_amount', 0);
+        if ($minAmount > 0) {
+            $total = $this->get_order_total();
+            if ($total < $minAmount) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -64,8 +97,11 @@ class NewebPayCreditInstallmentGateway extends NewebPayGateway
         $data = parent::preparePaymentData($order);
         $data['CREDIT'] = '1';
 
-        // 加入分期期數參數
-        $installments = $this->get_option('installments', $this->defaultInstallments);
+        // 加入分期期數參數（multiselect 回傳陣列，需轉為逗號分隔字串）
+        $installments = $this->get_option('installments', ['3', '6', '12', '18', '24']);
+        if (is_array($installments)) {
+            $installments = implode(',', $installments);
+        }
         $data['InstFlag'] = $installments;
 
         return $data;

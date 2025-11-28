@@ -64,4 +64,22 @@ class ECPayCreditInstallmentGatewayTest extends TestCase
         $redirect_data = get_transient('omnipay_redirect_'.$order->get_id());
         $this->assertArrayHasKey('CreditInstallment', $redirect_data['data']);
     }
+
+    public function test_form_fields_has_min_amount_and_installments()
+    {
+        $this->assertArrayHasKey('min_amount', $this->gateway->form_fields);
+        $this->assertArrayHasKey('installments', $this->gateway->form_fields);
+        $this->assertEquals('multiselect', $this->gateway->form_fields['installments']['type']);
+    }
+
+    public function test_is_available_returns_false_when_below_min_amount()
+    {
+        $this->gateway->update_option('min_amount', '100');
+        $this->gateway->init_settings();
+
+        WC()->cart->empty_cart();
+        WC()->cart->add_to_cart($this->createProduct(50)->get_id());
+
+        $this->assertFalse($this->gateway->is_available());
+    }
 }
