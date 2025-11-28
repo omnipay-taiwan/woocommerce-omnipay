@@ -123,83 +123,51 @@ function woocommerce_omnipay_maybe_render_redirect_form()
         return;
     }
 
-    $order_id = isset($_GET['order_id']) ? absint($_GET['order_id']) : 0;
-    $order_key = isset($_GET['key']) ? sanitize_text_field($_GET['key']) : '';
+    $orderId = isset($_GET['order_id']) ? absint($_GET['order_id']) : 0;
+    $orderKey = isset($_GET['key']) ? sanitize_text_field($_GET['key']) : '';
 
-    if (! $order_id) {
+    if (! $orderId) {
         return;
     }
 
-    $order = wc_get_order($order_id);
+    $order = wc_get_order($orderId);
 
-    if (! $order || $order->get_order_key() !== $order_key) {
+    if (! $order || $order->get_order_key() !== $orderKey) {
         return;
     }
 
-    $redirect_data = get_transient('omnipay_redirect_'.$order_id);
+    $redirectData = get_transient('omnipay_redirect_'.$orderId);
 
-    if (! $redirect_data) {
+    if (! $redirectData) {
         return;
     }
 
-    // 刪除 transient，避免重複使用
-    delete_transient('omnipay_redirect_'.$order_id);
+    delete_transient('omnipay_redirect_'.$orderId);
 
-    // 渲染自動提交表單
-    woocommerce_omnipay_render_redirect_form($redirect_data);
+    echo woocommerce_omnipay_get_template('checkout/redirect-form.php', [
+        'url' => $redirectData['url'],
+        'method' => $redirectData['method'],
+        'data' => $redirectData['data'],
+    ]);
 
-    // 在測試環境不 exit
-    if (! defined('WP_TESTS_DOMAIN')) {
-        exit;
-    }
-}
-
-/**
- * Render auto-submit redirect form
- */
-function woocommerce_omnipay_render_redirect_form(array $redirect_data)
-{
-    $url = esc_url($redirect_data['url']);
-    $method = esc_attr($redirect_data['method']);
-    $data = $redirect_data['data'];
-
-    echo '<form id="omnipay-redirect-form" action="'.$url.'" method="'.$method.'">';
-
-    foreach ($data as $name => $value) {
-        echo '<input type="hidden" name="'.esc_attr($name).'" value="'.esc_attr($value).'" />';
-    }
-
-    echo '</form>';
-    echo '<script>document.getElementById("omnipay-redirect-form").submit();</script>';
+    \WooCommerceOmnipay\Helper::terminate();
 }
 
 /**
  * Add Omnipay gateways to WooCommerce
- *
- * 使用 GatewayRegistry 載入已配置的 Omnipay gateways
- * 如果有對應的具體 Gateway 類別，使用該類別
- * 否則使用 OmnipayGateway 動態建立
  *
  * @param  array  $gateways  Existing gateways
  * @return array Modified gateways
  */
 function woocommerce_omnipay_add_gateways($gateways)
 {
-    // 使用 GatewayRegistry 載入 gateways
     $registry = new \WooCommerceOmnipay\Services\GatewayRegistry(
         woocommerce_omnipay_get_config()
     );
 
-    // 為每個已配置的 gateway 建立實例並註冊
-    foreach ($registry->getGateways() as $gateway_info) {
-        $name = $gateway_info['gateway'] ?? '';
-        $gateway_class = "\\WooCommerceOmnipay\\Gateways\\{$name}Gateway";
-
-        if (! class_exists($gateway_class)) {
-            $gateway_class = \WooCommerceOmnipay\Gateways\OmnipayGateway::class;
-        }
-
-        $gateways[] = new $gateway_class($gateway_info);
+    foreach ($registry->getGateways() as $gatewayInfo) {
+        $gatewayClass = $registry->resolveGatewayClass($gatewayInfo);
+        $gateways[] = new $gatewayClass($gatewayInfo);
     }
 
     return $gateways;
@@ -212,45 +180,11 @@ function woocommerce_omnipay_add_gateways($gateways)
  */
 function woocommerce_omnipay_get_config()
 {
-    // 預設 gateways 配置
-    // 純陣列格式，必須指定 gateway 和 gateway_id
-    $default_config = [
-        'gateways' => [
-            [
-                'gateway' => 'BankTransfer',
-                'gateway_id' => 'banktransfer',
-                'title' => '銀行轉帳',
-                'description' => '使用銀行轉帳付款',
-            ],
-            [
-                'gateway' => 'Dummy',
-                'gateway_id' => 'dummy',
-                'title' => 'Dummy Gateway',
-                'description' => 'Dummy payment gateway for testing',
-            ],
-            [
-                'gateway' => 'ECPay',
-                'gateway_id' => 'ecpay',
-                'title' => '綠界金流',
-                'description' => '使用綠界金流付款',
-            ],
-            [
-                'gateway' => 'NewebPay',
-                'gateway_id' => 'newebpay',
-                'title' => '藍新金流',
-                'description' => '使用藍新金流付款',
-            ],
-            [
-                'gateway' => 'YiPay',
-                'gateway_id' => 'yipay',
-                'title' => 'YiPay 乙禾金流',
-                'description' => '使用 YiPay 乙禾金流付款',
-            ],
-        ],
-    ];
+    $gateways = require WOOCOMMERCE_OMNIPAY_PLUGIN_DIR.'config/gateways.php';
 
-    // 允許透過 filter 自訂配置
-    return apply_filters('woocommerce_omnipay_gateway_config', $default_config);
+    return apply_filters('woocommerce_omnipay_gateway_config', [
+        'gateways' => $gateways,
+    ]);
 }
 
 /**
@@ -266,30 +200,9 @@ function woocommerce_omnipay_missing_wc_notice()
 }
 
 /**
- * Get template file path
+ * Load and render a template
  *
  * Look for template in theme first, then fallback to plugin templates
- *
- * @param  string  $template_name  Template name (e.g., 'payment-info.php')
- * @return string Template file path
- */
-function woocommerce_omnipay_get_template_path($template_name)
-{
-    // Look in theme/child-theme first
-    $theme_template = locate_template([
-        'woocommerce-omnipay/'.$template_name,
-    ]);
-
-    if ($theme_template) {
-        return $theme_template;
-    }
-
-    // Fallback to plugin templates
-    return WOOCOMMERCE_OMNIPAY_PLUGIN_DIR.'templates/'.$template_name;
-}
-
-/**
- * Load and render a template
  *
  * @param  string  $template_name  Template name (e.g., 'payment-info.php')
  * @param  array  $args  Variables to pass to the template
@@ -297,13 +210,18 @@ function woocommerce_omnipay_get_template_path($template_name)
  */
 function woocommerce_omnipay_get_template($template_name, $args = [])
 {
-    $template_path = woocommerce_omnipay_get_template_path($template_name);
+    // Look in theme/child-theme first
+    $template_path = locate_template(['woocommerce-omnipay/'.$template_name]);
+
+    // Fallback to plugin templates
+    if (! $template_path) {
+        $template_path = WOOCOMMERCE_OMNIPAY_PLUGIN_DIR.'templates/'.$template_name;
+    }
 
     if (! file_exists($template_path)) {
         return '';
     }
 
-    // Extract args to make them available in template
     if (! empty($args)) {
         extract($args);
     }

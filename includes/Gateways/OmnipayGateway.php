@@ -6,11 +6,11 @@ use Omnipay\Common\Message\NotificationInterface;
 use Psr\Log\LoggerInterface;
 use WC_Payment_Gateway;
 use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
-use WooCommerceOmnipay\Gateways\Traits\DisplaysPaymentInfo;
 use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 use WooCommerceOmnipay\Services\OmnipayBridge;
 use WooCommerceOmnipay\Services\WooCommerceLogger;
+use WooCommerceOmnipay\Traits\DisplaysPaymentInfo;
 
 /**
  * Omnipay Gateway
@@ -623,6 +623,13 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         $order = $this->orders->findByTransactionIdOrFail($notification->getTransactionId());
 
+        // 金額驗證
+        if (! $this->validateAmount($order, $notification->getData())) {
+            $this->sendCallbackResponse(false, 'Amount mismatch');
+
+            return;
+        }
+
         if (! $this->shouldProcessOrder($order)) {
             $this->sendCallbackResponse(true);
 
@@ -642,6 +649,21 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->completeOrderPayment($order, $notification->getTransactionReference(), 'callback');
 
         $this->sendNotificationResponse($notification);
+    }
+
+    /**
+     * 驗證回調金額是否與訂單金額相符
+     *
+     * 子類應覆寫此方法實作金額驗證邏輯
+     * 預設不驗證（回傳 true）
+     *
+     * @param  \WC_Order  $order  訂單
+     * @param  array  $data  回調資料
+     * @return bool
+     */
+    protected function validateAmount($order, array $data)
+    {
+        return true;
     }
 
     /**
@@ -777,7 +799,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         } else {
             echo '0|'.$message;
         }
-        $this->terminate();
+        Helper::terminate();
     }
 
     /**
@@ -791,25 +813,11 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         if (method_exists($notification, 'getReply')) {
             echo $notification->getReply();
-            $this->terminate();
+            Helper::terminate();
 
             return;
         }
         $this->sendCallbackResponse(true);
-    }
-
-    /**
-     * 終止請求
-     *
-     * 在測試環境中可透過 filter 禁用 exit
-     *
-     * @codeCoverageIgnore
-     */
-    protected function terminate()
-    {
-        if (apply_filters('woocommerce_omnipay_should_exit', true)) {
-            exit;
-        }
     }
 
     /**

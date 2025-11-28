@@ -2,6 +2,7 @@
 
 namespace WooCommerceOmnipay\Gateways;
 
+use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 
 /**
@@ -157,6 +158,6 @@ class BankTransferGateway extends OmnipayGateway
             'success' => $success,
             'message' => $message,
         ]);
-        $this->terminate();
+        Helper::terminate();
     }
 }

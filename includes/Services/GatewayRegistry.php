@@ -10,6 +10,7 @@ namespace WooCommerceOmnipay\Services;
  * 配置格式：純陣列，每個元素包含：
  * - gateway: 必須指定的 Omnipay gateway 名稱
  * - gateway_id: 必須指定的 WooCommerce gateway ID
+ * - class: 選填，指定的 Gateway 類別（完整命名空間）
  * - title: 選填，預設使用 gateway
  * - description: 選填，自動產生
  */
@@ -21,6 +22,13 @@ class GatewayRegistry
      * @var array
      */
     protected $config;
+
+    /**
+     * Gateway 可用性快取
+     *
+     * @var array
+     */
+    protected $availabilityCache = [];
 
     /**
      * Constructor
@@ -40,15 +48,20 @@ class GatewayRegistry
      * @param  string  $name  Omnipay gateway 名稱
      * @return bool
      */
-    public function isGatewayAvailable($name)
+    public function isAvailable($name)
     {
+        if (isset($this->availabilityCache[$name])) {
+            return $this->availabilityCache[$name];
+        }
+
         try {
             \Omnipay\Omnipay::create($name);
-
-            return true;
+            $this->availabilityCache[$name] = true;
         } catch (\Exception $e) {
-            return false;
+            $this->availabilityCache[$name] = false;
         }
+
+        return $this->availabilityCache[$name];
     }
 
     /**
@@ -63,22 +76,10 @@ class GatewayRegistry
         $gateways = [];
 
         foreach ($this->config['gateways'] as $config) {
-            // 必須有 gateway
-            if (empty($config['gateway'])) {
+            if (! $this->isValidConfig($config)) {
                 continue;
             }
 
-            // 必須有 gateway_id
-            if (empty($config['gateway_id'])) {
-                continue;
-            }
-
-            // 驗證 Omnipay gateway 是否可用
-            if (! $this->isGatewayAvailable($config['gateway'])) {
-                continue;
-            }
-
-            // 補上預設值
             $gateways[] = $this->createGatewayInfo($config);
         }
 
@@ -86,15 +87,18 @@ class GatewayRegistry
     }
 
     /**
-     * 取得啟用的 gateways（已棄用，回傳同 getGateways）
+     * 驗證配置是否有效
      *
-     * @return array
-     *
-     * @deprecated 使用 getGateways() 代替
+     * @param  array  $config  配置
+     * @return bool
      */
-    public function getEnabledGateways()
+    protected function isValidConfig(array $config)
     {
-        return $this->getGateways();
+        if (empty($config['gateway']) || empty($config['gateway_id'])) {
+            return false;
+        }
+
+        return $this->isAvailable($config['gateway']);
     }
 
     /**
@@ -124,5 +128,35 @@ class GatewayRegistry
     protected function generateDescription($title)
     {
         return sprintf('Pay with %s', $title);
+    }
+
+    /**
+     * 解析 Gateway 類別
+     *
+     * 優先順序：
+     * 1. 配置中指定的 class
+     * 2. 自動偵測的具體 Gateway 類別
+     * 3. 使用 OmnipayGateway 動態建立
+     *
+     * @param  array  $gatewayInfo  Gateway 配置資訊
+     * @return string Gateway 類別名稱
+     */
+    public function resolveGatewayClass(array $gatewayInfo)
+    {
+        // 1. 優先使用配置中指定的 class
+        if (! empty($gatewayInfo['class']) && class_exists($gatewayInfo['class'])) {
+            return $gatewayInfo['class'];
+        }
+
+        $name = $gatewayInfo['gateway'] ?? '';
+
+        // 2. 嘗試自動偵測具體 Gateway 類別
+        $gatewayClass = "\\WooCommerceOmnipay\\Gateways\\{$name}Gateway";
+        if (class_exists($gatewayClass)) {
+            return $gatewayClass;
+        }
+
+        // 3. 使用 OmnipayGateway 動態建立
+        return \WooCommerceOmnipay\Gateways\OmnipayGateway::class;
     }
 }

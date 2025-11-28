@@ -32,19 +32,19 @@ class GatewayRegistryTest extends WP_UnitTestCase
     {
         // Dummy 已安裝（在 composer require-dev）
         $this->assertTrue(
-            $this->registry->isGatewayAvailable('Dummy'),
+            $this->registry->isAvailable('Dummy'),
             'Dummy should be available'
         );
 
         // ECPay 已安裝
         $this->assertTrue(
-            $this->registry->isGatewayAvailable('ECPay'),
+            $this->registry->isAvailable('ECPay'),
             'ECPay should be available'
         );
 
         // 不存在的 gateway
         $this->assertFalse(
-            $this->registry->isGatewayAvailable('NonExistentGateway'),
+            $this->registry->isAvailable('NonExistentGateway'),
             'NonExistentGateway should not be available'
         );
     }
@@ -262,28 +262,5 @@ class GatewayRegistryTest extends WP_UnitTestCase
         $gateways = $registry->getGateways();
 
         $this->assertNotEmpty($gateways[0]['description']);
-    }
-
-    /**
-     * 測試：getEnabledGateways 已棄用，回傳同 getGateways
-     */
-    public function test_get_enabled_gateways_is_alias_for_get_gateways()
-    {
-        $config = [
-            'gateways' => [
-                [
-                    'gateway' => 'Dummy',
-                    'gateway_id' => 'dummy',
-                    'title' => 'Test',
-                ],
-            ],
-        ];
-
-        $registry = new GatewayRegistry($config);
-
-        $this->assertEquals(
-            $registry->getGateways(),
-            $registry->getEnabledGateways()
-        );
     }
 }

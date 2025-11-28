@@ -42,10 +42,10 @@ class NewebPayTest extends TestCase
         $this->assertEquals('success', $result['result']);
         $this->assertStringContainsString('omnipay_redirect=1', $result['redirect']);
 
-        $redirect_data = get_transient('omnipay_redirect_'.$order->get_id());
-        $this->assertStringContainsString('newebpay.com', $redirect_data['url']);
-        $this->assertArrayHasKey('TradeInfo', $redirect_data['data']);
-        $this->assertArrayHasKey('TradeSha', $redirect_data['data']);
+        $redirectData = get_transient('omnipay_redirect_'.$order->get_id());
+        $this->assertStringContainsString('newebpay.com', $redirectData['url']);
+        $this->assertArrayHasKey('TradeInfo', $redirectData['data']);
+        $this->assertArrayHasKey('TradeSha', $redirectData['data']);
 
         $this->assertEquals('on-hold', wc_get_order($order->get_id())->get_status());
     }
@@ -137,6 +137,28 @@ class NewebPayTest extends TestCase
 
         $order = wc_get_order($order->get_id());
         $this->assertEquals('LLL24112512345', $order->get_meta('_omnipay_payment_no'));
+        $this->assertEquals('on-hold', $order->get_status());
+    }
+
+    // ==================== 金額驗證測試 ====================
+
+    public function test_accept_notification_rejects_amount_mismatch()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'Status' => 'SUCCESS',
+            'Amt' => 999,  // 金額不符
+        ]));
+
+        ob_start();
+        $this->gateway->acceptNotification();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('0|', $output);
+
+        $order = wc_get_order($order->get_id());
         $this->assertEquals('on-hold', $order->get_status());
     }
 

@@ -42,9 +42,9 @@ class YiPayTest extends TestCase
         $this->assertEquals('success', $result['result']);
         $this->assertStringContainsString('omnipay_redirect=1', $result['redirect']);
 
-        $redirect_data = get_transient('omnipay_redirect_'.$order->get_id());
-        $this->assertStringContainsString('yipay.com.tw', $redirect_data['url']);
-        $this->assertArrayHasKey('checkCode', $redirect_data['data']);
+        $redirectData = get_transient('omnipay_redirect_'.$order->get_id());
+        $this->assertStringContainsString('yipay.com.tw', $redirectData['url']);
+        $this->assertArrayHasKey('checkCode', $redirectData['data']);
 
         $this->assertEquals('on-hold', wc_get_order($order->get_id())->get_status());
     }
@@ -167,6 +167,29 @@ class YiPayTest extends TestCase
             'ATM' => ['4', 'account', '9103522175887271', '_omnipay_virtual_account'],
             'CVS' => ['3', 'pinCode', 'CVS24112512345', '_omnipay_payment_no'],
         ];
+    }
+
+    // ==================== 金額驗證測試 ====================
+
+    public function test_accept_notification_rejects_amount_mismatch()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'statusCode' => '00',
+            'type' => '2',
+            'amount' => '999',  // 金額不符
+        ]));
+
+        ob_start();
+        $this->gateway->acceptNotification();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('0|', $output);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('on-hold', $order->get_status());
     }
 
     // ==================== Helper ====================
