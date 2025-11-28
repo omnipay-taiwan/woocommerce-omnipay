@@ -41,6 +41,18 @@ class Helper
     }
 
     /**
+     * 終止程式執行（測試環境可透過 filter 禁用）
+     *
+     * @codeCoverageIgnore
+     */
+    public static function terminate()
+    {
+        if (apply_filters('woocommerce_omnipay_should_exit', true)) {
+            exit;
+        }
+    }
+
+    /**
      * 遮蔽敏感資料
      *
      * @param  array  $data  原始資料

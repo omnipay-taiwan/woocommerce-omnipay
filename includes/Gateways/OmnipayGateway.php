@@ -799,7 +799,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         } else {
             echo '0|'.$message;
         }
-        $this->terminate();
+        Helper::terminate();
     }
 
     /**
@@ -813,25 +813,11 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         if (method_exists($notification, 'getReply')) {
             echo $notification->getReply();
-            $this->terminate();
+            Helper::terminate();
 
             return;
         }
         $this->sendCallbackResponse(true);
-    }
-
-    /**
-     * 終止請求
-     *
-     * 在測試環境中可透過 filter 禁用 exit
-     *
-     * @codeCoverageIgnore
-     */
-    protected function terminate()
-    {
-        if (apply_filters('woocommerce_omnipay_should_exit', true)) {
-            exit;
-        }
     }
 
     /**
