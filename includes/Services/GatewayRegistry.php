@@ -24,6 +24,13 @@ class GatewayRegistry
     protected $config;
 
     /**
+     * Gateway 可用性快取
+     *
+     * @var array
+     */
+    protected $availabilityCache = [];
+
+    /**
      * Constructor
      *
      * @param  array  $config  配置選項
@@ -41,15 +48,20 @@ class GatewayRegistry
      * @param  string  $name  Omnipay gateway 名稱
      * @return bool
      */
-    public function isGatewayAvailable($name)
+    public function isAvailable($name)
     {
+        if (isset($this->availabilityCache[$name])) {
+            return $this->availabilityCache[$name];
+        }
+
         try {
             \Omnipay\Omnipay::create($name);
-
-            return true;
+            $this->availabilityCache[$name] = true;
         } catch (\Exception $e) {
-            return false;
+            $this->availabilityCache[$name] = false;
         }
+
+        return $this->availabilityCache[$name];
     }
 
     /**
@@ -64,22 +76,10 @@ class GatewayRegistry
         $gateways = [];
 
         foreach ($this->config['gateways'] as $config) {
-            // 必須有 gateway
-            if (empty($config['gateway'])) {
+            if (! $this->isValidConfig($config)) {
                 continue;
             }
 
-            // 必須有 gateway_id
-            if (empty($config['gateway_id'])) {
-                continue;
-            }
-
-            // 驗證 Omnipay gateway 是否可用
-            if (! $this->isGatewayAvailable($config['gateway'])) {
-                continue;
-            }
-
-            // 補上預設值
             $gateways[] = $this->createGatewayInfo($config);
         }
 
@@ -87,15 +87,18 @@ class GatewayRegistry
     }
 
     /**
-     * 取得啟用的 gateways（已棄用，回傳同 getGateways）
+     * 驗證配置是否有效
      *
-     * @return array
-     *
-     * @deprecated 使用 getGateways() 代替
+     * @param  array  $config  配置
+     * @return bool
      */
-    public function getEnabledGateways()
+    protected function isValidConfig(array $config)
     {
-        return $this->getGateways();
+        if (empty($config['gateway']) || empty($config['gateway_id'])) {
+            return false;
+        }
+
+        return $this->isAvailable($config['gateway']);
     }
 
     /**
