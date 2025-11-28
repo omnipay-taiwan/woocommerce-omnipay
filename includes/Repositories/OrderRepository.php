@@ -232,4 +232,71 @@ class OrderRepository
 
         return $baseId.'T'.$random;
     }
+
+    /**
+     * 新增訂單備註
+     *
+     * @param  \WC_Order  $order
+     * @param  string  $note
+     * @return void
+     */
+    public function addNote($order, $note)
+    {
+        $order->add_order_note($note);
+    }
+
+    /**
+     * 將訂單標記為等待付款確認（on-hold）
+     *
+     * @param  \WC_Order  $order
+     * @param  string  $message
+     * @return void
+     */
+    public function markAsOnHold($order, $message = '')
+    {
+        $order->update_status('on-hold', $message);
+    }
+
+    /**
+     * 將訂單標記為失敗
+     *
+     * @param  \WC_Order  $order
+     * @param  string  $message
+     * @return void
+     */
+    public function markAsFailed($order, $message = '')
+    {
+        $order->update_status('failed', $message);
+    }
+
+    /**
+     * 完成訂單付款
+     *
+     * @param  \WC_Order  $order
+     * @param  string|null  $transactionRef  交易參考碼
+     * @param  string  $note  備註
+     * @return void
+     */
+    public function markAsComplete($order, $transactionRef = null, $note = '')
+    {
+        $order->payment_complete($transactionRef);
+
+        if (! empty($note)) {
+            $order->add_order_note($note);
+        }
+    }
+
+    /**
+     * 儲存匯款帳號後5碼
+     *
+     * @param  \WC_Order  $order
+     * @param  string  $last5
+     * @return void
+     */
+    public function saveRemittanceLast5($order, $last5)
+    {
+        $order->update_meta_data(self::META_REMITTANCE_LAST5, $last5);
+        $order->add_order_note(sprintf(__('客戶已填寫匯款帳號後5碼：%s', 'woocommerce-omnipay'), $last5));
+        $order->save();
+    }
 }

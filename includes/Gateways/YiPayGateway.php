@@ -63,9 +63,7 @@ class YiPayGateway extends OmnipayGateway
 
         $type = (int) ($data['type'] ?? 0);
         $typeName = $type === self::TYPE_ATM ? 'ATM' : 'CVS';
-        $order->add_order_note(
-            sprintf('YiPay 取號成功 (%s)，等待付款', $typeName)
-        );
+        $this->orders->addNote($order, sprintf('YiPay 取號成功 (%s)，等待付款', $typeName));
     }
 
     /**

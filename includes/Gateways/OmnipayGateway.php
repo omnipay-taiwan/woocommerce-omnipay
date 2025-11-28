@@ -23,15 +23,6 @@ class OmnipayGateway extends WC_Payment_Gateway
     use DisplaysPaymentInfo;
 
     /**
-     * 訂單狀態常數
-     */
-    protected const STATUS_PENDING = 'pending';
-
-    protected const STATUS_ON_HOLD = 'on-hold';
-
-    protected const STATUS_FAILED = 'failed';
-
-    /**
      * Omnipay gateway 名稱（例如：'Dummy', 'PayPal_Express'）
      *
      * @var string
@@ -267,7 +258,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'order_id' => $order_id,
                 'error' => $e->getMessage(),
             ]);
-            $order->add_order_note(sprintf('Payment error: %s', $e->getMessage()));
+            $this->orders->addNote($order, sprintf('Payment error: %s', $e->getMessage()));
             wc_add_notice('Payment error: '.$e->getMessage(), 'error');
 
             return ['result' => 'failure'];
@@ -401,10 +392,8 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function on_payment_failed($order, $error_message, $source = 'process_payment', $add_notice = true)
     {
-        $order->update_status(self::STATUS_FAILED, $error_message);
-        $order->add_order_note(
-            sprintf('Payment failed via %s: %s', $source, $error_message)
-        );
+        $this->orders->markAsFailed($order, $error_message);
+        $this->orders->addNote($order, sprintf('Payment failed via %s: %s', $source, $error_message));
 
         if ($add_notice) {
             wc_add_notice($error_message, 'error');
@@ -426,11 +415,9 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         // allow_resubmit = no 時，將訂單改為 on-hold 避免重複提交
         if ($this->get_effective_option('allow_resubmit') !== 'yes') {
-            $order->update_status(self::STATUS_ON_HOLD, sprintf('Awaiting %s payment.', $this->method_title));
+            $this->orders->markAsOnHold($order, sprintf('Awaiting %s payment.', $this->method_title));
         } else {
-            $order->add_order_note(
-                sprintf('Redirecting to %s for payment.', $this->method_title)
-            );
+            $this->orders->addNote($order, sprintf('Redirecting to %s for payment.', $this->method_title));
         }
 
         // 取得 redirect URL
@@ -769,7 +756,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         // allow_resubmit = no 時，訂單應該是 on-hold
         // allow_resubmit = yes 時，訂單應該是 pending
-        return $this->get_effective_option('allow_resubmit') === 'yes' ? self::STATUS_PENDING : self::STATUS_ON_HOLD;
+        return $this->get_effective_option('allow_resubmit') === 'yes' ? 'pending' : 'on-hold';
     }
 
     /**
@@ -781,8 +768,9 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function complete_order_payment($order, $transaction_ref, $source = 'callback')
     {
-        $order->payment_complete($transaction_ref);
-        $order->add_order_note(
+        $this->orders->markAsComplete(
+            $order,
+            $transaction_ref,
             sprintf('Payment completed via %s. Transaction ID: %s', $source, $transaction_ref ?: 'N/A')
         );
     }

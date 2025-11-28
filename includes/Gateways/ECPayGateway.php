@@ -87,8 +87,6 @@ class ECPayGateway extends OmnipayGateway
         parent::save_payment_info($order, $data);
 
         $paymentType = $data['PaymentType'] ?? '';
-        $order->add_order_note(
-            sprintf('ECPay 取號成功 (%s)，等待付款', $paymentType)
-        );
+        $this->orders->addNote($order, sprintf('ECPay 取號成功 (%s)，等待付款', $paymentType));
     }
 }

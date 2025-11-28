@@ -61,13 +61,10 @@ class BankTransferGateway extends OmnipayGateway
      */
     protected function save_payment_info($order, array $data)
     {
-        if (! empty($data['bank_code'])) {
-            $order->update_meta_data('_omnipay_bank_code', $data['bank_code']);
-        }
-        if (! empty($data['account_number'])) {
-            $order->update_meta_data('_omnipay_bank_account', $data['account_number']);
-        }
-        $order->save();
+        $this->orders->savePaymentInfo($order, [
+            'BankCode' => $data['bank_code'] ?? '',
+            'BankAccount' => $data['account_number'] ?? '',
+        ]);
     }
 
     /**
@@ -140,9 +137,7 @@ class BankTransferGateway extends OmnipayGateway
         }
 
         // 儲存
-        $order->update_meta_data(OrderRepository::META_REMITTANCE_LAST5, $last5);
-        $order->add_order_note(sprintf(__('客戶已填寫匯款帳號後5碼：%s', 'woocommerce-omnipay'), $last5));
-        $order->save();
+        $this->orders->saveRemittanceLast5($order, $last5);
 
         $this->send_json_response(true, __('已成功送出', 'woocommerce-omnipay'));
     }

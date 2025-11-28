@@ -72,9 +72,7 @@ class NewebPayGateway extends OmnipayGateway
         parent::save_payment_info($order, $normalizedData);
 
         $paymentType = $data['PaymentType'] ?? '';
-        $order->add_order_note(
-            sprintf('藍新金流取號成功 (%s)，等待付款', $paymentType)
-        );
+        $this->orders->addNote($order, sprintf('藍新金流取號成功 (%s)，等待付款', $paymentType));
     }
 
     /**
