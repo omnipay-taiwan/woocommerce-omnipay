@@ -52,6 +52,9 @@ function woocommerce_omnipay_init()
     // Register payment gateways
     add_filter('woocommerce_payment_gateways', 'woocommerce_omnipay_add_gateways');
 
+    // Register shared settings pages
+    woocommerce_omnipay_register_shared_settings();
+
     // Handle redirect form rendering
     add_action('template_redirect', 'woocommerce_omnipay_maybe_render_redirect_form');
 
@@ -59,6 +62,17 @@ function woocommerce_omnipay_init()
     add_action('wp_enqueue_scripts', 'woocommerce_omnipay_register_scripts');
 }
 add_action('plugins_loaded', 'woocommerce_omnipay_init');
+
+/**
+ * Register shared settings page
+ */
+function woocommerce_omnipay_register_shared_settings()
+{
+    $config = woocommerce_omnipay_get_config();
+
+    $page = new \WooCommerceOmnipay\SharedSettingsPage($config['gateways']);
+    $page->register();
+}
 
 /**
  * Register plugin scripts and styles
@@ -172,14 +186,14 @@ function woocommerce_omnipay_render_redirect_form(array $redirect_data)
 function woocommerce_omnipay_add_gateways($gateways)
 {
     // 使用 GatewayRegistry 載入 gateways
-    $registry = new \WooCommerceOmnipay\GatewayRegistry(
+    $registry = new \WooCommerceOmnipay\Services\GatewayRegistry(
         woocommerce_omnipay_get_config()
     );
 
     // 為每個已配置的 gateway 建立實例並註冊
     foreach ($registry->getGateways() as $gateway_info) {
-        $omnipay_name = $gateway_info['omnipay_name'] ?? '';
-        $gateway_class = "\\WooCommerceOmnipay\\Gateways\\{$omnipay_name}Gateway";
+        $name = $gateway_info['gateway'] ?? '';
+        $gateway_class = "\\WooCommerceOmnipay\\Gateways\\{$name}Gateway";
 
         if (! class_exists($gateway_class)) {
             $gateway_class = \WooCommerceOmnipay\Gateways\OmnipayGateway::class;
@@ -199,35 +213,35 @@ function woocommerce_omnipay_add_gateways($gateways)
 function woocommerce_omnipay_get_config()
 {
     // 預設 gateways 配置
-    // 純陣列格式，必須指定 omnipay_name 和 gateway_id
+    // 純陣列格式，必須指定 gateway 和 gateway_id
     $default_config = [
         'gateways' => [
             [
-                'omnipay_name' => 'BankTransfer',
+                'gateway' => 'BankTransfer',
                 'gateway_id' => 'banktransfer',
                 'title' => '銀行轉帳',
                 'description' => '使用銀行轉帳付款',
             ],
             [
-                'omnipay_name' => 'Dummy',
+                'gateway' => 'Dummy',
                 'gateway_id' => 'dummy',
                 'title' => 'Dummy Gateway',
                 'description' => 'Dummy payment gateway for testing',
             ],
             [
-                'omnipay_name' => 'ECPay',
+                'gateway' => 'ECPay',
                 'gateway_id' => 'ecpay',
                 'title' => '綠界金流',
                 'description' => '使用綠界金流付款',
             ],
             [
-                'omnipay_name' => 'NewebPay',
+                'gateway' => 'NewebPay',
                 'gateway_id' => 'newebpay',
                 'title' => '藍新金流',
                 'description' => '使用藍新金流付款',
             ],
             [
-                'omnipay_name' => 'YiPay',
+                'gateway' => 'YiPay',
                 'gateway_id' => 'yipay',
                 'title' => 'YiPay 乙禾金流',
                 'description' => '使用 YiPay 乙禾金流付款',

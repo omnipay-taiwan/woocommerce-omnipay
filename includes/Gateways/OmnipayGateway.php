@@ -7,6 +7,7 @@ use Psr\Log\LoggerInterface;
 use WC_Payment_Gateway;
 use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
 use WooCommerceOmnipay\Gateways\Traits\DisplaysPaymentInfo;
+use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 use WooCommerceOmnipay\Services\OmnipayBridge;
 use WooCommerceOmnipay\Services\WooCommerceLogger;
@@ -35,17 +36,24 @@ class OmnipayGateway extends WC_Payment_Gateway
      *
      * @var string
      */
-    protected $omnipay_gateway_name;
+    protected $name;
+
+    /**
+     * 是否顯示 Omnipay 參數欄位以覆蓋共用設定
+     *
+     * @var bool
+     */
+    protected $override_settings = false;
 
     /**
      * @var OmnipayBridge
      */
-    protected $omnipay_bridge;
+    protected $bridge;
 
     /**
      * @var OrderRepository
      */
-    protected $order_repository;
+    protected $orders;
 
     /**
      * @var LoggerInterface
@@ -55,22 +63,22 @@ class OmnipayGateway extends WC_Payment_Gateway
     /**
      * Constructor
      *
-     * @param  array  $gateway_config  可選的 gateway 配置
+     * @param  array  $config  可選的 gateway 配置
      */
-    public function __construct(array $gateway_config = [])
+    public function __construct(array $config = [])
     {
         // 如果提供了配置，使用配置初始化
-        if (! empty($gateway_config)) {
+        if (! empty($config)) {
             // gateway_id 自動加上 omnipay_ 前綴
-            $gateway_id = $gateway_config['gateway_id'] ?? '';
-            $this->id = 'omnipay_'.$gateway_id;
-            $this->method_title = $gateway_config['title'] ?? '';
-            $this->method_description = $gateway_config['description'] ?? '';
-            $this->omnipay_gateway_name = $gateway_config['omnipay_name'] ?? '';
+            $this->id = 'omnipay_'.($config['gateway_id'] ?? '');
+            $this->method_title = $config['title'] ?? '';
+            $this->method_description = $config['description'] ?? '';
+            $this->name = $config['gateway'] ?? '';
+            $this->override_settings = $config['override_settings'] ?? false;
         }
 
-        $this->omnipay_bridge = new OmnipayBridge($this->omnipay_gateway_name);
-        $this->order_repository = new OrderRepository;
+        $this->bridge = new OmnipayBridge($this->name);
+        $this->orders = new OrderRepository;
         $this->logger = new WooCommerceLogger($this->id);
 
         // 預設不啟用付款欄位（子類可以覆寫）
@@ -107,7 +115,29 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         $value = parent::get_option($key, $empty_value);
 
-        return OmnipayBridge::sanitizeOptionValue($value);
+        return Helper::sanitizeOptionValue($value);
+    }
+
+    /**
+     * 取得有效的設定值（Gateway 設定 > 共用設定）
+     *
+     * 用於 transaction_id_prefix, allow_resubmit 等 Plugin 設定
+     *
+     * @param  string  $key  設定鍵
+     * @param  mixed  $default  預設值
+     * @return string
+     */
+    public function get_effective_option($key, $default = '')
+    {
+        // 優先使用 Gateway 自己的設定
+        $value = $this->get_option($key);
+
+        if (! empty($value)) {
+            return $value;
+        }
+
+        // Fallback 到共用設定
+        return $this->bridge->getSharedValue($key, $default);
     }
 
     /**
@@ -141,9 +171,11 @@ class OmnipayGateway extends WC_Payment_Gateway
             ],
         ];
 
-        // 從 Omnipay gateway 取得參數並產生欄位
-        $omnipay_fields = $this->omnipay_bridge->buildFormFields();
-        $this->form_fields = array_merge($this->form_fields, $omnipay_fields);
+        // 從 Omnipay gateway 取得參數並產生欄位（根據配置決定是否顯示）
+        if ($this->override_settings) {
+            $omnipay_fields = $this->bridge->buildFormFields();
+            $this->form_fields = array_merge($this->form_fields, $omnipay_fields);
+        }
 
         // 通用設定欄位
         $this->form_fields['allow_resubmit'] = [
@@ -169,29 +201,9 @@ class OmnipayGateway extends WC_Payment_Gateway
      *
      * @return \Omnipay\Common\GatewayInterface
      */
-    public function get_omnipay_gateway()
+    public function get_gateway()
     {
-        return $this->omnipay_bridge->createGateway($this->get_omnipay_parameters());
-    }
-
-    /**
-     * 從 WooCommerce 設定取得 Omnipay 參數
-     *
-     * @return array
-     */
-    protected function get_omnipay_parameters()
-    {
-        $parameters = [];
-
-        foreach ($this->omnipay_bridge->getDefaultParameters() as $key => $default_value) {
-            $setting_value = $this->get_option($key);
-
-            if (! empty($setting_value)) {
-                $parameters[$key] = OmnipayBridge::convertOptionValue($setting_value, $default_value);
-            }
-        }
-
-        return $parameters;
+        return $this->bridge->createGateway($this->settings);
     }
 
     /**
@@ -202,19 +214,10 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     public function process_payment($order_id)
     {
-        $order = $this->order_repository->findById($order_id);
-
-        if (! $order) {
-            wc_add_notice('Invalid order.', 'error');
-
-            return [
-                'result' => 'failure',
-            ];
-        }
-
         try {
+            $order = $this->orders->findByIdOrFail($order_id);
             // 建立 Omnipay gateway
-            $gateway = $this->get_omnipay_gateway();
+            $gateway = $this->get_gateway();
 
             // 準備付款參數
             $payment_data = $this->prepare_payment_data($order);
@@ -235,7 +238,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'redirect' => $response->isRedirect(),
                 'message' => $response->getMessage(),
                 'transaction_reference' => $response->getTransactionReference(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
             // 處理回應
@@ -251,21 +254,23 @@ class OmnipayGateway extends WC_Payment_Gateway
 
                 return $this->on_payment_failed($order, $error_message);
             }
+        } catch (OrderNotFoundException $e) {
+            $this->logger->error('process_payment: Order not found', [
+                'order_id' => $order_id,
+                'error' => $e->getMessage(),
+            ]);
+            wc_add_notice($e->getMessage(), 'error');
+
+            return ['result' => 'failure'];
         } catch (\Exception $e) {
             $this->logger->error('process_payment: Exception', [
                 'order_id' => $order_id,
                 'error' => $e->getMessage(),
             ]);
-
-            // 例外處理
-            $order->add_order_note(
-                sprintf('Payment error: %s', $e->getMessage())
-            );
+            $order->add_order_note(sprintf('Payment error: %s', $e->getMessage()));
             wc_add_notice('Payment error: '.$e->getMessage(), 'error');
 
-            return [
-                'result' => 'failure',
-            ];
+            return ['result' => 'failure'];
         }
     }
 
@@ -338,10 +343,10 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function generate_transaction_id($order)
     {
-        return $this->order_repository->createTransactionId(
+        return $this->orders->createTransactionId(
             $order,
-            $this->get_option('transaction_id_prefix'),
-            $this->get_option('allow_resubmit') === 'yes'
+            $this->get_effective_option('transaction_id_prefix'),
+            $this->get_effective_option('allow_resubmit') === 'yes'
         );
     }
 
@@ -420,7 +425,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     protected function on_payment_redirect($order, $response)
     {
         // allow_resubmit = no 時，將訂單改為 on-hold 避免重複提交
-        if ($this->get_option('allow_resubmit') !== 'yes') {
+        if ($this->get_effective_option('allow_resubmit') !== 'yes') {
             $order->update_status(self::STATUS_ON_HOLD, sprintf('Awaiting %s payment.', $this->method_title));
         } else {
             $order->add_order_note(
@@ -480,7 +485,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->logger->info('accept_notification: Received callback', $this->get_request_data());
 
         try {
-            $gateway = $this->get_omnipay_gateway();
+            $gateway = $this->get_gateway();
 
             if ($gateway->supportsAcceptNotification()) {
                 $notification = $gateway->acceptNotification($this->get_callback_parameters());
@@ -503,7 +508,7 @@ class OmnipayGateway extends WC_Payment_Gateway
                 'transaction_id' => $response->getTransactionId(),
                 'successful' => $response->isSuccessful(),
                 'message' => $response->getMessage(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
             $this->handle_complete_purchase_callback($response);
@@ -564,15 +569,15 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function handle_payment_info()
     {
-        $gateway = $this->get_omnipay_gateway();
+        $gateway = $this->get_gateway();
         $notification = $gateway->acceptNotification($this->get_callback_parameters());
 
         $this->logger->info('get_payment_info: Parsed notification', [
             'transaction_id' => $notification->getTransactionId(),
-            'data' => $this->mask_sensitive_data($notification->getData() ?? []),
+            'data' => Helper::maskSensitiveData($notification->getData() ?? []),
         ]);
 
-        $order = $this->order_repository->findByTransactionIdOrFail($notification->getTransactionId());
+        $order = $this->orders->findByTransactionIdOrFail($notification->getTransactionId());
 
         $this->save_payment_info($order, $notification->getData());
 
@@ -595,17 +600,17 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->logger->info('complete_purchase: User returned', $this->get_request_data());
 
         try {
-            $gateway = $this->get_omnipay_gateway();
+            $gateway = $this->get_gateway();
             $response = $gateway->completePurchase($this->get_callback_parameters())->send();
 
             $this->logger->info('complete_purchase: Gateway response', [
                 'transaction_id' => $response->getTransactionId(),
                 'successful' => $response->isSuccessful(),
                 'message' => $response->getMessage(),
-                'data' => $this->mask_sensitive_data($response->getData() ?? []),
+                'data' => Helper::maskSensitiveData($response->getData() ?? []),
             ]);
 
-            $order = $this->order_repository->findByTransactionIdOrFail($response->getTransactionId());
+            $order = $this->orders->findByTransactionIdOrFail($response->getTransactionId());
 
             $result = $this->handle_payment_result($response, $order, 'return URL');
 
@@ -642,7 +647,7 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function handle_notification($notification)
     {
-        $order = $this->order_repository->findByTransactionIdOrFail($notification->getTransactionId());
+        $order = $this->orders->findByTransactionIdOrFail($notification->getTransactionId());
 
         if (! $this->should_process_order($order)) {
             $this->send_callback_response(true);
@@ -675,7 +680,7 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function handle_complete_purchase_callback($response)
     {
-        $order = $this->order_repository->findByTransactionIdOrFail($response->getTransactionId());
+        $order = $this->orders->findByTransactionIdOrFail($response->getTransactionId());
 
         if (! $this->should_process_order($order)) {
             $this->send_callback_response(true);
@@ -698,7 +703,7 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function save_payment_info($order, array $data)
     {
-        $this->order_repository->savePaymentInfo($order, $data);
+        $this->orders->savePaymentInfo($order, $data);
     }
 
     /**
@@ -764,7 +769,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     {
         // allow_resubmit = no 時，訂單應該是 on-hold
         // allow_resubmit = yes 時，訂單應該是 pending
-        return $this->get_option('allow_resubmit') === 'yes' ? self::STATUS_PENDING : self::STATUS_ON_HOLD;
+        return $this->get_effective_option('allow_resubmit') === 'yes' ? self::STATUS_PENDING : self::STATUS_ON_HOLD;
     }
 
     /**
@@ -837,27 +842,6 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function get_request_data()
     {
-        return $this->mask_sensitive_data($_POST);
-    }
-
-    /**
-     * 遮蔽敏感資料
-     *
-     * @param  array  $data  原始資料
-     * @return array 遮蔽後的資料
-     */
-    protected function mask_sensitive_data(array $data)
-    {
-        $sensitive_keys = ['HashKey', 'HashIV', 'cvv', 'number', 'card_number', 'password', 'secret'];
-
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $data[$key] = $this->mask_sensitive_data($value);
-            } elseif (in_array(strtolower($key), array_map('strtolower', $sensitive_keys), true)) {
-                $data[$key] = '***';
-            }
-        }
-
-        return $data;
+        return Helper::maskSensitiveData($_POST);
     }
 }

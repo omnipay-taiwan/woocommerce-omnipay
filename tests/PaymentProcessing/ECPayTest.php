@@ -11,7 +11,7 @@ class ECPayTest extends TestCase
 {
     protected $gatewayId = 'ecpay';
 
-    protected $omnipayName = 'ECPay';
+    protected $gatewayName = 'ECPay';
 
     protected $settings = [
         'HashKey' => '5294y06JbISpM5x9',
@@ -240,7 +240,7 @@ class ECPayTest extends TestCase
         $gateway = new \WooCommerceOmnipay\Gateways\OmnipayGateway([
             'gateway_id' => $gatewayId,
             'title' => 'ECPay Test',
-            'omnipay_name' => 'ECPay',
+            'gateway' => 'ECPay',
         ]);
 
         $order = $this->createOrder(100);

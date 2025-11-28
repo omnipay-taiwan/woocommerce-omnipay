@@ -46,7 +46,7 @@ class ECPayGateway extends OmnipayGateway
 
         // 檢查是否為取號結果通知
         if ($this->is_payment_info_notification($data)) {
-            $order = $this->order_repository->findByTransactionId($notification->getTransactionId());
+            $order = $this->orders->findByTransactionId($notification->getTransactionId());
 
             if ($order) {
                 $this->save_payment_info($order, $data);

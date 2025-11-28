@@ -91,7 +91,7 @@ trait DisplaysPaymentInfo
      */
     public function get_payment_info_output($order, $plain_text = false)
     {
-        $payment_info = $this->order_repository->getPaymentInfo($order);
+        $payment_info = $this->orders->getPaymentInfo($order);
         $template = $plain_text ? 'order/payment-info-plain.php' : 'order/payment-info.php';
 
         return woocommerce_omnipay_get_template($template, [

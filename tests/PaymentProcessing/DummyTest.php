@@ -9,7 +9,7 @@ class DummyTest extends TestCase
 {
     protected $gatewayId = 'dummy';
 
-    protected $omnipayName = 'Dummy';
+    protected $gatewayName = 'Dummy';
 
     /**
      * 測試：成功的付款處理

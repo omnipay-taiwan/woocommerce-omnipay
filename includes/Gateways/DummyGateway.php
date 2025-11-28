@@ -101,7 +101,7 @@ class DummyGateway extends OmnipayGateway
         // 嘗試從當前訂單取得帳單資訊
         // 1. 檢查是否有待付款訂單（結帳流程）
         if (WC()->session && WC()->session->get('order_awaiting_payment')) {
-            $order = $this->order_repository->findById(WC()->session->get('order_awaiting_payment'));
+            $order = $this->orders->findById(WC()->session->get('order_awaiting_payment'));
             if ($order) {
                 $data['firstName'] = $order->get_billing_first_name();
                 $data['lastName'] = $order->get_billing_last_name();

@@ -11,7 +11,7 @@ class NewebPayTest extends TestCase
 {
     protected $gatewayId = 'newebpay';
 
-    protected $omnipayName = 'NewebPay';
+    protected $gatewayName = 'NewebPay';
 
     private $hashKey = 'Fs5cX7xLlHwjbKKW6rxNfEOI3I1WxqWt';
 
