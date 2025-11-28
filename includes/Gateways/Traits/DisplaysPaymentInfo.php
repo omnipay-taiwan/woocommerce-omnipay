@@ -14,7 +14,7 @@ trait DisplaysPaymentInfo
     /**
      * 註冊付款資訊顯示 hooks
      */
-    protected function register_payment_info_hooks()
+    protected function registerPaymentInfoHooks()
     {
         // 感謝頁：付款資訊在訂單詳情之前
         add_action('woocommerce_order_details_before_order_table', [$this, 'display_payment_info_on_thankyou']);
@@ -63,7 +63,7 @@ trait DisplaysPaymentInfo
             return;
         }
 
-        echo $this->get_payment_info_output($order);
+        echo $this->getPaymentInfoOutput($order);
     }
 
     /**
@@ -79,7 +79,7 @@ trait DisplaysPaymentInfo
             return;
         }
 
-        echo $this->get_payment_info_output($order, $plain_text);
+        echo $this->getPaymentInfoOutput($order, $plain_text);
     }
 
     /**
@@ -89,7 +89,7 @@ trait DisplaysPaymentInfo
      * @param  bool  $plain_text  是否為純文字格式
      * @return string
      */
-    public function get_payment_info_output($order, $plain_text = false)
+    public function getPaymentInfoOutput($order, $plain_text = false)
     {
         $payment_info = $this->orders->getPaymentInfo($order);
         $template = $plain_text ? 'order/payment-info-plain.php' : 'order/payment-info.php';

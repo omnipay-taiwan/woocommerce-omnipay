@@ -37,7 +37,7 @@ class YiPayGateway extends OmnipayGateway
      *
      * @return array
      */
-    protected function get_callback_parameters()
+    protected function getCallbackParameters()
     {
         return [
             'returnUrl' => WC()->api_request_url($this->id.'_complete'),
@@ -55,11 +55,11 @@ class YiPayGateway extends OmnipayGateway
      * @param  \WC_Order  $order  訂單
      * @param  array  $data  通知資料
      */
-    protected function save_payment_info($order, array $data)
+    protected function savePaymentInfo($order, array $data)
     {
-        $normalizedData = $this->normalize_payment_info($data);
+        $normalizedData = $this->normalizePaymentInfo($data);
 
-        parent::save_payment_info($order, $normalizedData);
+        parent::savePaymentInfo($order, $normalizedData);
 
         $type = (int) ($data['type'] ?? 0);
         $typeName = $type === self::TYPE_ATM ? 'ATM' : 'CVS';
@@ -76,7 +76,7 @@ class YiPayGateway extends OmnipayGateway
      * @param  array  $data  YiPay 通知資料
      * @return array 標準化的付款資訊
      */
-    protected function normalize_payment_info(array $data)
+    protected function normalizePaymentInfo(array $data)
     {
         $normalized = [];
         $type = (int) ($data['type'] ?? 0);
