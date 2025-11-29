@@ -19,8 +19,8 @@ $period_type_labels = [
     <?php
     $value = $period['periodType'].'_'.$period['frequency'].'_'.$period['execTimes'];
     $label = sprintf(
-        __('NT$ %d / %s %s, up to a maximum of %s', 'woocommerce-omnipay'),
-        $total,
+        __('%s / %s %s, up to a maximum of %s', 'woocommerce-omnipay'),
+        wc_price($total),
         $period['frequency'],
         $period_type_labels[$period['periodType']] ?? $period['periodType'],
         $period['execTimes']

@@ -297,8 +297,8 @@ class NewebPayDCAGateway extends NewebPayGateway
             foreach ($this->dca_periods as $period) {
                 $value = $period['periodType'].'_'.$period['periodPoint'].'_'.$period['periodTimes'].'_'.$period['periodStartType'];
                 $label = sprintf(
-                    __('NT$ %d / %s, up to a maximum of %s', 'woocommerce-omnipay'),
-                    $total,
+                    __('%s / %s, up to a maximum of %s', 'woocommerce-omnipay'),
+                    wc_price($total),
                     $periodTypeLabels[$period['periodType']] ?? $period['periodType'],
                     $period['periodTimes']
                 );
