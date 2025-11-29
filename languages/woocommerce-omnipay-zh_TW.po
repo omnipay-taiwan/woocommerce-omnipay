@@ -322,3 +322,34 @@ msgstr "新增方案"
 
 msgid "Remove Selected"
 msgstr "移除所選項目"
+
+# Error Messages
+msgid "Order not found."
+msgstr "找不到訂單資料。"
+
+msgid "Payment processing error. Please try again later."
+msgstr "付款處理發生錯誤，請稍後再試。"
+
+msgid "Payment failed. Please try again or choose another payment method."
+msgstr "付款失敗，請重新嘗試或選擇其他付款方式。"
+
+msgid "Error processing payment information."
+msgstr "處理付款資訊時發生錯誤。"
+
+msgid "Error completing payment."
+msgstr "完成付款時發生錯誤。"
+
+# Admin Settings
+msgid "Allow users to resubmit payment"
+msgstr "允許用戶重新提交付款"
+
+msgid "When enabled, use random transaction IDs to allow payment retry. Orders remain in Pending status. When disabled, use order IDs as transaction IDs and orders change to On-hold status."
+msgstr "啟用時使用隨機交易編號，訂單維持 Pending 狀態，允許重新付款。停用時使用訂單編號作為交易編號，訂單改為 On-hold 狀態。"
+
+# Order Notes
+msgid "ECPay simulated payment (SimulatePaid=1)"
+msgstr "ECPay 模擬付款 (SimulatePaid=1)"
+
+msgid "Customer submitted last %d digits of remittance account: %s"
+msgstr "客戶已填寫匯款帳號後%d碼：%s"
+
