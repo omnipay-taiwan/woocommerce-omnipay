@@ -240,11 +240,8 @@ msgstr "付款方案"
 msgid "Select payment plan"
 msgstr "請選擇付款方案"
 
-msgid "You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products."
-msgstr "你將使用<strong>綠界科技定期定額信用卡付款</strong>，請留意你所購買的商品為<strong>非單次扣款</strong>商品。"
-
-msgid "You will use <strong>NewebPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products."
-msgstr "你將使用<strong>藍新科技定期定額信用卡付款</strong>，請留意你所購買的商品為<strong>非單次扣款</strong>商品。"
+msgid "You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products."
+msgstr "你將使用<strong>%s定期定額信用卡付款</strong>，請留意你所購買的商品為<strong>非單次扣款</strong>商品。"
 
 msgid "%s / %s %s, up to a maximum of %s times"
 msgstr "%s / 每 %s %s，最多 %s 次"

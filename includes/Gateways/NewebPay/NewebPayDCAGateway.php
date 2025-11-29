@@ -200,7 +200,10 @@ class NewebPayDCAGateway extends NewebPayGateway
      */
     protected function getWarningMessage(): string
     {
-        return __('You will use <strong>NewebPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay');
+        return sprintf(
+            __('You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
+            'NewebPay'
+        );
     }
 
     /**
