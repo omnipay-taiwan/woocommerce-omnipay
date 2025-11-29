@@ -84,7 +84,12 @@ trait HasDcaPeriods
      */
     public function generate_periods_html($key, $data)
     {
-        return woocommerce_omnipay_get_template($this->getDcaAdminTemplatePath(), [
+        // Extract provider from gateway ID (e.g., omnipay_ecpay_dca -> ecpay)
+        $provider = str_replace('omnipay_', '', $this->id);
+        $provider = explode('_dca', $provider)[0];
+        $templatePath = "admin/{$provider}-dca-periods-table.php";
+
+        return woocommerce_omnipay_get_template($templatePath, [
             'fieldKey' => $this->get_field_key($key),
             'data' => $data,
             'periods' => $this->dcaPeriods,
@@ -152,7 +157,12 @@ trait HasDcaPeriods
         if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
             $total = WC()->cart ? WC()->cart->total : 0;
 
-            echo woocommerce_omnipay_get_template($this->getDcaCheckoutTemplatePath(), [
+            // Extract provider from gateway ID (e.g., omnipay_ecpay_dca -> ecpay)
+            $provider = str_replace('omnipay_', '', $this->id);
+            $provider = explode('_dca', $provider)[0];
+            $templatePath = "checkout/{$provider}-dca-form.php";
+
+            echo woocommerce_omnipay_get_template($templatePath, [
                 'periods' => $this->dcaPeriods,
                 'total' => $total,
                 'periodFields' => $this->getPeriodFields(),
@@ -304,16 +314,6 @@ trait HasDcaPeriods
      * Get warning message for checkout
      */
     abstract protected function getWarningMessage(): string;
-
-    /**
-     * Get DCA admin template path
-     */
-    abstract protected function getDcaAdminTemplatePath(): string;
-
-    /**
-     * Get DCA checkout template path
-     */
-    abstract protected function getDcaCheckoutTemplatePath(): string;
 
     /**
      * Validate period constraints

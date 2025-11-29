@@ -267,22 +267,6 @@ class NewebPayDCAGateway extends NewebPayGateway
     }
 
     /**
-     * Get DCA admin template path
-     */
-    protected function getDcaAdminTemplatePath(): string
-    {
-        return 'admin/newebpay-dca-periods-table.php';
-    }
-
-    /**
-     * Get DCA checkout template path
-     */
-    protected function getDcaCheckoutTemplatePath(): string
-    {
-        return 'checkout/newebpay-dca-form.php';
-    }
-
-    /**
      * 準備付款資料
      *
      * @param  \WC_Order  $order  訂單
