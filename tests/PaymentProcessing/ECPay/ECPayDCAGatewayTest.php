@@ -44,9 +44,9 @@ class ECPayDCAGatewayTest extends TestCase
         ]);
 
         // Set up Blocks mode settings
-        $this->gateway->update_option('dca_periodType', 'M');
-        $this->gateway->update_option('dca_frequency', 1);
-        $this->gateway->update_option('dca_execTimes', 12);
+        $this->gateway->update_option('periodType', 'M');
+        $this->gateway->update_option('frequency', 1);
+        $this->gateway->update_option('execTimes', 12);
     }
 
     public function test_gateway_has_correct_id_and_title()

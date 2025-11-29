@@ -51,10 +51,10 @@ class NewebPayDCAGatewayTest extends TestCase
         ]);
 
         // Set up Blocks mode settings
-        $this->gateway->update_option('dca_periodType', 'M');
-        $this->gateway->update_option('dca_periodPoint', '');
-        $this->gateway->update_option('dca_periodTimes', 12);
-        $this->gateway->update_option('dca_periodStartType', 2);
+        $this->gateway->update_option('periodType', 'M');
+        $this->gateway->update_option('periodPoint', '1');
+        $this->gateway->update_option('periodTimes', 12);
+        $this->gateway->update_option('periodStartType', 2);
     }
 
     public function test_gateway_has_correct_id_and_title()

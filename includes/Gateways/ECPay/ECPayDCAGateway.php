@@ -3,25 +3,21 @@
 namespace WooCommerceOmnipay\Gateways\ECPay;
 
 use WooCommerceOmnipay\Gateways\ECPayGateway;
+use WooCommerceOmnipay\Traits\HasDcaPeriods;
 
 /**
  * ECPay 定期定額 Gateway
  */
 class ECPayDCAGateway extends ECPayGateway
 {
+    use HasDcaPeriods;
+
     /**
      * 付款方式
      *
      * @var string
      */
     protected $paymentType = 'Credit';
-
-    /**
-     * 定期定額方案
-     *
-     * @var array
-     */
-    protected $dcaPeriods = [];
 
     /**
      * Constructor
@@ -37,15 +33,7 @@ class ECPayDCAGateway extends ECPayGateway
         parent::__construct($config);
 
         // Load DCA periods from option
-        $this->dcaPeriods = get_option($this->getDcaPeriodsOptionName(), []);
-    }
-
-    /**
-     * Get DCA periods option name
-     */
-    protected function getDcaPeriodsOptionName(): string
-    {
-        return 'woocommerce_'.$this->id.'_periods';
+        $this->loadDcaPeriods();
     }
 
     /**
@@ -56,24 +44,24 @@ class ECPayDCAGateway extends ECPayGateway
         parent::init_form_fields();
 
         // Blocks mode settings (single period)
-        $this->form_fields['dca_blocks_line'] = [
+        $this->form_fields['blocks_line'] = [
             'title' => '<hr>',
             'type' => 'title',
         ];
 
-        $this->form_fields['dca_blocks_caption'] = [
+        $this->form_fields['blocks_caption'] = [
             'title' => '',
             'type' => 'title',
             'description' => __('There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections.', 'woocommerce-omnipay'),
         ];
 
-        $this->form_fields['dca_blocks_title'] = [
+        $this->form_fields['blocks_title'] = [
             'title' => __('DCA (Support WooCommerce Blocks)', 'woocommerce-omnipay'),
             'type' => 'title',
             'description' => __('The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully', 'woocommerce-omnipay'),
         ];
 
-        $this->form_fields['dca_periodType'] = [
+        $this->form_fields['periodType'] = [
             'title' => __('Period Type', 'woocommerce-omnipay'),
             'type' => 'select',
             'default' => 'Y',
@@ -85,7 +73,7 @@ class ECPayDCAGateway extends ECPayGateway
             ],
         ];
 
-        $this->form_fields['dca_frequency'] = [
+        $this->form_fields['frequency'] = [
             'title' => __('Frequency', 'woocommerce-omnipay'),
             'type' => 'number',
             'default' => 1,
@@ -96,7 +84,7 @@ class ECPayDCAGateway extends ECPayGateway
             ],
         ];
 
-        $this->form_fields['dca_execTimes'] = [
+        $this->form_fields['execTimes'] = [
             'title' => __('Execute Times', 'woocommerce-omnipay'),
             'type' => 'number',
             'default' => 2,
@@ -108,37 +96,31 @@ class ECPayDCAGateway extends ECPayGateway
         ];
 
         // Shortcode mode settings (multiple periods table)
-        $this->form_fields['dca_shortcode_line'] = [
+        $this->form_fields['shortcode_line'] = [
             'title' => '<hr>',
             'type' => 'title',
         ];
 
-        $this->form_fields['dca_shortcode_title'] = [
+        $this->form_fields['shortcode_title'] = [
             'title' => __('DCA (Support WooCommerce Shortcode)', 'woocommerce-omnipay'),
             'type' => 'title',
             'description' => __('The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully', 'woocommerce-omnipay'),
         ];
 
-        $this->form_fields['dca_periods'] = [
+        $this->form_fields['periods'] = [
             'title' => __('DCA Periods', 'woocommerce-omnipay'),
-            'type' => 'dca_periods',
+            'type' => 'periods',
             'default' => '',
             'description' => '',
         ];
     }
 
     /**
-     * 生成 DCA 設定表格 HTML
+     * Get default period data
      */
-    public function generate_dca_periods_html($key, $data)
+    protected function getDefaultPeriod(): array
     {
-        return woocommerce_omnipay_get_template('admin/dca-periods-table.php', [
-            'fieldKey' => $this->get_field_key($key),
-            'data' => $data,
-            'periods' => $this->dcaPeriods,
-            'fieldConfigs' => $this->getDcaFieldConfigs(),
-            'defaultPeriod' => ['periodType' => 'M', 'frequency' => 1, 'execTimes' => 12],
-        ]);
+        return ['periodType' => 'M', 'frequency' => 1, 'execTimes' => 12];
     }
 
     /**
@@ -169,28 +151,12 @@ class ECPayDCAGateway extends ECPayGateway
     }
 
     /**
-     * 處理管理選項更新
-     */
-    public function process_admin_options()
-    {
-        // Validate DCA settings
-        if (! $this->validateDcaFields()) {
-            return false;
-        }
-
-        // Save DCA periods
-        $this->saveDcaPeriods();
-
-        return parent::process_admin_options();
-    }
-
-    /**
      * Save DCA periods from POST data
      */
     protected function saveDcaPeriods()
     {
         $dcaPeriods = [];
-        if (isset($_POST['periodType'])) {
+        if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
             $frequencies = array_map('absint', $_POST['frequency']);
             $execTimes = array_map('absint', $_POST['execTimes']);
@@ -216,10 +182,10 @@ class ECPayDCAGateway extends ECPayGateway
         $errorMsg = '';
 
         // Validate Blocks mode settings
-        if (isset($_POST[$this->plugin_id.$this->id.'_dca_periodType'])) {
-            $periodType = sanitize_text_field($_POST[$this->plugin_id.$this->id.'_dca_periodType']);
-            $frequency = absint($_POST[$this->plugin_id.$this->id.'_dca_frequency'] ?? 0);
-            $execTimes = absint($_POST[$this->plugin_id.$this->id.'_dca_execTimes'] ?? 0);
+        if (isset($_POST[$this->plugin_id.$this->id.'_periodType'])) {
+            $periodType = sanitize_text_field($_POST[$this->plugin_id.$this->id.'_periodType']);
+            $frequency = absint($_POST[$this->plugin_id.$this->id.'_frequency'] ?? 0);
+            $execTimes = absint($_POST[$this->plugin_id.$this->id.'_execTimes'] ?? 0);
 
             $errorMsg .= $this->validatePeriodConstraints($periodType, $frequency, $execTimes);
         }
@@ -307,28 +273,11 @@ class ECPayDCAGateway extends ECPayGateway
     }
 
     /**
-     * 檢查付款方式是否可用
+     * Get required DCA fields for Blocks mode validation
      */
-    public function is_available()
+    protected function getRequiredDcaFields(): array
     {
-        if (! parent::is_available()) {
-            return false;
-        }
-
-        // 未設定定期定額選項時，不開放此付款方式
-        if (! (function_exists('is_checkout') && is_checkout())) {
-            return true;
-        }
-
-        // 新版 WooCommerce Blocks - 檢查單一方案設定
-        if (function_exists('has_block') && has_block('woocommerce/checkout')) {
-            return ! (empty($this->get_option('dca_periodType'))
-                || empty($this->get_option('dca_frequency'))
-                || empty($this->get_option('dca_execTimes')));
-        }
-
-        // 舊版傳統結帳 - 檢查多組方案設定
-        return ! empty($this->dcaPeriods);
+        return ['periodType', 'frequency', 'execTimes'];
     }
 
     /**
@@ -377,22 +326,14 @@ class ECPayDCAGateway extends ECPayGateway
     }
 
     /**
-     * Check if current checkout is using Blocks mode
-     */
-    protected function isBlocksMode(): bool
-    {
-        return ! isset($_POST['omnipay_dca_period']);
-    }
-
-    /**
      * Get DCA data for Blocks mode
      */
     protected function getBlocksModeDcaData(): array
     {
         return [
-            'PeriodType' => $this->get_option('dca_periodType', 'M'),
-            'Frequency' => (int) $this->get_option('dca_frequency', 1),
-            'ExecTimes' => (int) $this->get_option('dca_execTimes', 2),
+            'PeriodType' => $this->get_option('periodType', 'M'),
+            'Frequency' => (int) $this->get_option('frequency', 1),
+            'ExecTimes' => (int) $this->get_option('execTimes', 2),
         ];
     }
 
