@@ -43,23 +43,7 @@ class ECPayDCAGateway extends ECPayGateway
     {
         parent::init_form_fields();
 
-        // Blocks mode settings (single period)
-        $this->form_fields['blocks_line'] = [
-            'title' => '<hr>',
-            'type' => 'title',
-        ];
-
-        $this->form_fields['blocks_caption'] = [
-            'title' => '',
-            'type' => 'title',
-            'description' => __('There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections.', 'woocommerce-omnipay'),
-        ];
-
-        $this->form_fields['blocks_title'] = [
-            'title' => __('DCA (Support WooCommerce Blocks)', 'woocommerce-omnipay'),
-            'type' => 'title',
-            'description' => __('The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully', 'woocommerce-omnipay'),
-        ];
+        $this->initDcaFormFields();
 
         $this->form_fields['periodType'] = [
             'title' => __('Period Type', 'woocommerce-omnipay'),
@@ -95,24 +79,7 @@ class ECPayDCAGateway extends ECPayGateway
             ],
         ];
 
-        // Shortcode mode settings (multiple periods table)
-        $this->form_fields['shortcode_line'] = [
-            'title' => '<hr>',
-            'type' => 'title',
-        ];
-
-        $this->form_fields['shortcode_title'] = [
-            'title' => __('DCA (Support WooCommerce Shortcode)', 'woocommerce-omnipay'),
-            'type' => 'title',
-            'description' => __('The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully', 'woocommerce-omnipay'),
-        ];
-
-        $this->form_fields['periods'] = [
-            'title' => __('DCA Periods', 'woocommerce-omnipay'),
-            'type' => 'periods',
-            'default' => '',
-            'description' => '',
-        ];
+        $this->initDcaShortcodeFormFields();
     }
 
     /**
@@ -151,84 +118,14 @@ class ECPayDCAGateway extends ECPayGateway
     }
 
     /**
-     * Save DCA periods from POST data
-     */
-    protected function saveDcaPeriods()
-    {
-        $dcaPeriods = [];
-        if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
-            $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
-            $frequencies = isset($_POST['frequency']) && is_array($_POST['frequency'])
-                ? array_map('absint', $_POST['frequency'])
-                : [];
-            $execTimes = isset($_POST['execTimes']) && is_array($_POST['execTimes'])
-                ? array_map('absint', $_POST['execTimes'])
-                : [];
-
-            foreach ($periodTypes as $i => $periodType) {
-                if (! empty($periodType)) {
-                    $dcaPeriods[] = [
-                        'periodType' => $periodType,
-                        'frequency' => $frequencies[$i] ?? 0,
-                        'execTimes' => $execTimes[$i] ?? 0,
-                    ];
-                }
-            }
-        }
-        update_option($this->getDcaPeriodsOptionName(), $dcaPeriods);
-    }
-
-    /**
-     * 驗證 DCA 欄位
-     */
-    protected function validateDcaFields()
-    {
-        $errorMsg = '';
-
-        // Validate Blocks mode settings
-        if (isset($_POST[$this->plugin_id.$this->id.'_periodType'])) {
-            $periodType = sanitize_text_field($_POST[$this->plugin_id.$this->id.'_periodType']);
-            $frequency = absint($_POST[$this->plugin_id.$this->id.'_frequency'] ?? 0);
-            $execTimes = absint($_POST[$this->plugin_id.$this->id.'_execTimes'] ?? 0);
-
-            $errorMsg .= $this->validatePeriodConstraints($periodType, $frequency, $execTimes);
-        }
-
-        // Validate Shortcode mode periods
-        if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
-            $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
-            $frequencies = isset($_POST['frequency']) && is_array($_POST['frequency'])
-                ? array_map('absint', $_POST['frequency'])
-                : [];
-            $execTimes = isset($_POST['execTimes']) && is_array($_POST['execTimes'])
-                ? array_map('absint', $_POST['execTimes'])
-                : [];
-
-            foreach ($periodTypes as $i => $periodType) {
-                if (! empty($periodType)) {
-                    $errorMsg .= $this->validatePeriodConstraints(
-                        $periodType,
-                        $frequencies[$i] ?? 0,
-                        $execTimes[$i] ?? 0
-                    );
-                }
-            }
-        }
-
-        if (! empty($errorMsg)) {
-            \WC_Admin_Settings::add_error($errorMsg);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * 驗證週期限制
      */
-    protected function validatePeriodConstraints($periodType, $frequency, $execTimes)
+    protected function validatePeriodConstraints(array $values): string
     {
+        $periodType = $values['periodType'] ?? '';
+        $frequency = $values['frequency'] ?? 0;
+        $execTimes = $values['execTimes'] ?? 0;
+
         $constraints = [
             'Y' => [
                 'frequency' => [1, 1],
@@ -285,26 +182,19 @@ class ECPayDCAGateway extends ECPayGateway
     }
 
     /**
-     * 顯示付款欄位
+     * Get period fields for template
      */
-    public function payment_fields()
+    protected function getPeriodFields(): array
     {
-        if ($this->description) {
-            echo '<p>'.wp_kses_post($this->description).'</p>';
-        }
+        return ['periodType', 'frequency', 'execTimes'];
+    }
 
-        // 只有 Shortcode 版本才顯示下拉選單
-        // Blocks 版本不需要顯示（直接使用設定的方案）
-        if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
-            $total = WC()->cart ? WC()->cart->total : 0;
-
-            echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
-                'periods' => $this->dcaPeriods,
-                'total' => $total,
-                'periodFields' => ['periodType', 'frequency', 'execTimes'],
-                'warningMessage' => __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
-            ]);
-        }
+    /**
+     * Get warning message for checkout
+     */
+    protected function getWarningMessage(): string
+    {
+        return __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay');
     }
 
     /**

@@ -275,11 +275,11 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->assertCount(2, $saved);
         $this->assertEquals('M', $saved[0]['periodType']);
         $this->assertEquals('1', $saved[0]['periodPoint']);
-        // Second period should have defaults for missing values
+        // Second period should use defaults from getDcaFieldConfigs for missing values
         $this->assertEquals('W', $saved[1]['periodType']);
-        $this->assertEquals('', $saved[1]['periodPoint']);
-        $this->assertEquals(0, $saved[1]['periodTimes']);
-        $this->assertEquals(0, $saved[1]['periodStartType']);
+        $this->assertEquals('1', $saved[1]['periodPoint']); // default from config
+        $this->assertEquals(12, $saved[1]['periodTimes']); // default from config
+        $this->assertEquals(2, $saved[1]['periodStartType']); // default from config
 
         unset($_POST['periodType']);
         unset($_POST['periodPoint']);

@@ -33,6 +33,53 @@ trait HasDcaPeriods
     }
 
     /**
+     * 初始化 DCA 共同表單欄位
+     */
+    protected function initDcaFormFields()
+    {
+        $this->form_fields['blocks_line'] = [
+            'title' => '<hr>',
+            'type' => 'title',
+        ];
+
+        $this->form_fields['blocks_caption'] = [
+            'title' => '',
+            'type' => 'title',
+            'description' => __('There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections.', 'woocommerce-omnipay'),
+        ];
+
+        $this->form_fields['blocks_title'] = [
+            'title' => __('DCA (Support WooCommerce Blocks)', 'woocommerce-omnipay'),
+            'type' => 'title',
+            'description' => __('The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully', 'woocommerce-omnipay'),
+        ];
+    }
+
+    /**
+     * 初始化 DCA Shortcode 表單欄位
+     */
+    protected function initDcaShortcodeFormFields()
+    {
+        $this->form_fields['shortcode_line'] = [
+            'title' => '<hr>',
+            'type' => 'title',
+        ];
+
+        $this->form_fields['shortcode_title'] = [
+            'title' => __('DCA (Support WooCommerce Shortcode)', 'woocommerce-omnipay'),
+            'type' => 'title',
+            'description' => __('The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully', 'woocommerce-omnipay'),
+        ];
+
+        $this->form_fields['periods'] = [
+            'title' => __('DCA Periods', 'woocommerce-omnipay'),
+            'type' => 'periods',
+            'default' => '',
+            'description' => '',
+        ];
+    }
+
+    /**
      * 生成 DCA 設定表格 HTML
      */
     public function generate_periods_html($key, $data)
@@ -92,11 +139,139 @@ trait HasDcaPeriods
     }
 
     /**
+     * 顯示付款欄位
+     */
+    public function payment_fields()
+    {
+        if ($this->description) {
+            echo '<p>'.wp_kses_post($this->description).'</p>';
+        }
+
+        // 只有 Shortcode 版本才顯示下拉選單
+        // Blocks 版本不需要顯示（直接使用設定的方案）
+        if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
+            $total = WC()->cart ? WC()->cart->total : 0;
+
+            echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
+                'periods' => $this->dcaPeriods,
+                'total' => $total,
+                'periodFields' => $this->getPeriodFields(),
+                'warningMessage' => $this->getWarningMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Check if current checkout is using Blocks mode
      */
     protected function isBlocksMode(): bool
     {
         return ! isset($_POST['omnipay_period']);
+    }
+
+    /**
+     * Save DCA periods from POST data
+     */
+    protected function saveDcaPeriods()
+    {
+        $dcaPeriods = [];
+        $fieldConfigs = $this->getDcaFieldConfigs();
+        $firstField = $fieldConfigs[0]['name'];
+
+        if (isset($_POST[$firstField]) && is_array($_POST[$firstField])) {
+            $count = count($_POST[$firstField]);
+
+            for ($i = 0; $i < $count; $i++) {
+                $period = [];
+                $hasValue = false;
+
+                foreach ($fieldConfigs as $config) {
+                    $fieldName = $config['name'];
+                    $value = $_POST[$fieldName][$i] ?? $config['default'];
+
+                    if ($config['type'] === 'number') {
+                        $period[$fieldName] = absint($value);
+                    } else {
+                        $period[$fieldName] = sanitize_text_field($value);
+                    }
+
+                    if (! empty($value)) {
+                        $hasValue = true;
+                    }
+                }
+
+                if ($hasValue) {
+                    $dcaPeriods[] = $period;
+                }
+            }
+        }
+
+        update_option($this->getDcaPeriodsOptionName(), $dcaPeriods);
+    }
+
+    /**
+     * 驗證 DCA 欄位
+     */
+    protected function validateDcaFields()
+    {
+        $errorMsg = '';
+
+        // Validate Blocks mode settings
+        $requiredFields = $this->getRequiredDcaFields();
+        if (isset($_POST[$this->plugin_id.$this->id.'_'.$requiredFields[0]])) {
+            $values = [];
+            foreach ($requiredFields as $field) {
+                $values[$field] = $_POST[$this->plugin_id.$this->id.'_'.$field] ?? null;
+                if (is_numeric($values[$field])) {
+                    $values[$field] = absint($values[$field]);
+                } else {
+                    $values[$field] = sanitize_text_field($values[$field]);
+                }
+            }
+            $errorMsg .= $this->validatePeriodConstraints($values);
+        }
+
+        // Validate Shortcode mode periods
+        $fieldConfigs = $this->getDcaFieldConfigs();
+        $firstField = $fieldConfigs[0]['name'];
+
+        if (isset($_POST[$firstField]) && is_array($_POST[$firstField])) {
+            $count = count($_POST[$firstField]);
+
+            for ($i = 0; $i < $count; $i++) {
+                $values = [];
+                $hasValue = false;
+
+                foreach ($fieldConfigs as $config) {
+                    $fieldName = $config['name'];
+                    if (isset($_POST[$fieldName][$i])) {
+                        $value = $_POST[$fieldName][$i];
+
+                        if ($config['type'] === 'number') {
+                            $values[$fieldName] = absint($value);
+                        } else {
+                            $values[$fieldName] = sanitize_text_field($value);
+                        }
+
+                        if (! empty($value)) {
+                            $hasValue = true;
+                        }
+                    }
+                }
+
+                if ($hasValue) {
+                    $errorMsg .= $this->validatePeriodConstraints($values);
+                }
+            }
+        }
+
+        if (! empty($errorMsg)) {
+            \WC_Admin_Settings::add_error($errorMsg);
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -115,14 +290,17 @@ trait HasDcaPeriods
     abstract protected function getDefaultPeriod(): array;
 
     /**
-     * Save DCA periods from POST data
+     * Get period fields for template
      */
-    abstract protected function saveDcaPeriods();
+    abstract protected function getPeriodFields(): array;
 
     /**
-     * 驗證 DCA 欄位
-     *
-     * @return bool
+     * Get warning message for checkout
      */
-    abstract protected function validateDcaFields();
+    abstract protected function getWarningMessage(): string;
+
+    /**
+     * Validate period constraints
+     */
+    abstract protected function validatePeriodConstraints(array $values): string;
 }

@@ -43,23 +43,7 @@ class NewebPayDCAGateway extends NewebPayGateway
     {
         parent::init_form_fields();
 
-        // Blocks mode settings (single period)
-        $this->form_fields['blocks_line'] = [
-            'title' => '<hr>',
-            'type' => 'title',
-        ];
-
-        $this->form_fields['blocks_caption'] = [
-            'title' => '',
-            'type' => 'title',
-            'description' => __('There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections.', 'woocommerce-omnipay'),
-        ];
-
-        $this->form_fields['blocks_title'] = [
-            'title' => __('DCA (Support WooCommerce Blocks)', 'woocommerce-omnipay'),
-            'type' => 'title',
-            'description' => __('The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully', 'woocommerce-omnipay'),
-        ];
+        $this->initDcaFormFields();
 
         $this->form_fields['periodType'] = [
             'title' => __('Period Type', 'woocommerce-omnipay'),
@@ -104,24 +88,7 @@ class NewebPayDCAGateway extends NewebPayGateway
             ],
         ];
 
-        // Shortcode mode settings (multiple periods table)
-        $this->form_fields['shortcode_line'] = [
-            'title' => '<hr>',
-            'type' => 'title',
-        ];
-
-        $this->form_fields['shortcode_title'] = [
-            'title' => __('DCA (Support WooCommerce Shortcode)', 'woocommerce-omnipay'),
-            'type' => 'title',
-            'description' => __('The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully', 'woocommerce-omnipay'),
-        ];
-
-        $this->form_fields['periods'] = [
-            'title' => __('DCA Periods', 'woocommerce-omnipay'),
-            'type' => 'periods',
-            'default' => '',
-            'description' => '',
-        ];
+        $this->initDcaShortcodeFormFields();
     }
 
     /**
@@ -171,83 +138,13 @@ class NewebPayDCAGateway extends NewebPayGateway
     }
 
     /**
-     * Save DCA periods from POST data
-     */
-    protected function saveDcaPeriods()
-    {
-        $dcaPeriods = [];
-        if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
-            $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
-            $periodPoints = isset($_POST['periodPoint']) && is_array($_POST['periodPoint'])
-                ? array_map('sanitize_text_field', $_POST['periodPoint'])
-                : [];
-            $periodTimes = isset($_POST['periodTimes']) && is_array($_POST['periodTimes'])
-                ? array_map('absint', $_POST['periodTimes'])
-                : [];
-            $periodStartTypes = isset($_POST['periodStartType']) && is_array($_POST['periodStartType'])
-                ? array_map('absint', $_POST['periodStartType'])
-                : [];
-
-            foreach ($periodTypes as $i => $periodType) {
-                if (! empty($periodType)) {
-                    $dcaPeriods[] = [
-                        'periodType' => $periodType,
-                        'periodPoint' => $periodPoints[$i] ?? '',
-                        'periodTimes' => $periodTimes[$i] ?? 0,
-                        'periodStartType' => $periodStartTypes[$i] ?? 0,
-                    ];
-                }
-            }
-        }
-        update_option($this->getDcaPeriodsOptionName(), $dcaPeriods);
-    }
-
-    /**
-     * 驗證 DCA 欄位
-     */
-    protected function validateDcaFields()
-    {
-        $errorMsg = '';
-
-        // Validate Blocks mode settings
-        if (isset($_POST[$this->plugin_id.$this->id.'_periodType'])) {
-            $periodType = sanitize_text_field($_POST[$this->plugin_id.$this->id.'_periodType']);
-            $periodTimes = absint($_POST[$this->plugin_id.$this->id.'_periodTimes'] ?? 0);
-
-            $errorMsg .= $this->validatePeriodConstraints($periodType, $periodTimes);
-        }
-
-        // Validate Shortcode mode periods
-        if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
-            $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
-            $periodTimes = isset($_POST['periodTimes']) && is_array($_POST['periodTimes'])
-                ? array_map('absint', $_POST['periodTimes'])
-                : [];
-
-            foreach ($periodTypes as $i => $periodType) {
-                if (! empty($periodType)) {
-                    $errorMsg .= $this->validatePeriodConstraints(
-                        $periodType,
-                        $periodTimes[$i] ?? 0
-                    );
-                }
-            }
-        }
-
-        if (! empty($errorMsg)) {
-            \WC_Admin_Settings::add_error($errorMsg);
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * 驗證週期限制
      */
-    protected function validatePeriodConstraints($periodType, $periodTimes)
+    protected function validatePeriodConstraints(array $values): string
     {
+        $periodType = $values['periodType'] ?? '';
+        $periodTimes = $values['periodTimes'] ?? 0;
+
         $constraints = [
             'Y' => [
                 'periodTimes' => [2, 99],
@@ -286,30 +183,23 @@ class NewebPayDCAGateway extends NewebPayGateway
      */
     protected function getRequiredDcaFields(): array
     {
-        return ['periodType', 'periodTimes', 'periodStartType'];
+        return ['periodType', 'periodPoint', 'periodTimes', 'periodStartType'];
     }
 
     /**
-     * 顯示付款欄位
+     * Get period fields for template
      */
-    public function payment_fields()
+    protected function getPeriodFields(): array
     {
-        if ($this->description) {
-            echo '<p>'.wp_kses_post($this->description).'</p>';
-        }
+        return ['periodType', 'periodPoint', 'periodTimes', 'periodStartType'];
+    }
 
-        // 只有 Shortcode 版本才顯示下拉選單
-        // Blocks 版本不需要顯示（直接使用設定的方案）
-        if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
-            $total = WC()->cart ? WC()->cart->total : 0;
-
-            echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
-                'periods' => $this->dcaPeriods,
-                'total' => $total,
-                'periodFields' => ['periodType', 'periodPoint', 'periodTimes', 'periodStartType'],
-                'warningMessage' => __('You will use <strong>NewebPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
-            ]);
-        }
+    /**
+     * Get warning message for checkout
+     */
+    protected function getWarningMessage(): string
+    {
+        return __('You will use <strong>NewebPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay');
     }
 
     /**
