@@ -61,8 +61,8 @@ class NewebPayDCAGateway extends NewebPayGateway
         $this->form_fields['periodPoint'] = [
             'title' => __('Period Point', 'woocommerce-omnipay'),
             'type' => 'text',
-            'default' => '1',
-            'description' => '',
+            'default' => '01',
+            'description' => __('Y: MMDD (e.g., 0315), M: 01-31, W: 1-7, D: 2-999', 'woocommerce-omnipay'),
         ];
 
         $this->form_fields['periodTimes'] = [
@@ -99,7 +99,7 @@ class NewebPayDCAGateway extends NewebPayGateway
     {
         return [
             'periodType' => 'M',
-            'periodPoint' => '1',
+            'periodPoint' => '01',
             'periodTimes' => 2,
             'periodStartType' => '2',
         ];
@@ -120,8 +120,8 @@ class NewebPayDCAGateway extends NewebPayGateway
             [
                 'name' => 'periodPoint',
                 'type' => 'text',
-                'default' => '1',
-                'attributes' => ['required' => 'required'],
+                'default' => '01',
+                'attributes' => ['required' => 'required', 'placeholder' => 'Y:MMDD M:DD W:1-7 D:2-999'],
             ],
             [
                 'name' => 'periodTimes',
@@ -144,7 +144,14 @@ class NewebPayDCAGateway extends NewebPayGateway
     protected function validatePeriodConstraints(array $values): string
     {
         $periodType = $values['periodType'] ?? '';
+        $periodPoint = $values['periodPoint'] ?? '';
         $periodTimes = $values['periodTimes'] ?? 0;
+
+        // Validate PeriodPoint format based on PeriodType
+        $pointError = $this->validatePeriodPoint($periodType, $periodPoint);
+        if ($pointError) {
+            return $pointError;
+        }
 
         $constraints = [
             'Y' => [
@@ -174,6 +181,53 @@ class NewebPayDCAGateway extends NewebPayGateway
 
         if ($periodTimes < $minTimes || $periodTimes > $maxTimes) {
             return $config['message'].' ';
+        }
+
+        return '';
+    }
+
+    /**
+     * 驗證 PeriodPoint 格式
+     */
+    protected function validatePeriodPoint(string $periodType, string $periodPoint): string
+    {
+        switch ($periodType) {
+            case 'Y':
+                // MMDD format (4 digits)
+                if (! preg_match('/^\d{4}$/', $periodPoint)) {
+                    return __('For yearly periods, PeriodPoint must be in MMDD format (e.g., 0315 for March 15th).', 'woocommerce-omnipay').' ';
+                }
+                // Validate month (01-12) and day (01-31)
+                $month = (int) substr($periodPoint, 0, 2);
+                $day = (int) substr($periodPoint, 2, 2);
+                if ($month < 1 || $month > 12 || $day < 1 || $day > 31) {
+                    return __('Invalid date in PeriodPoint. Month must be 01-12, day must be 01-31.', 'woocommerce-omnipay').' ';
+                }
+                break;
+
+            case 'M':
+                // DD format (01-31)
+                $day = (int) $periodPoint;
+                if ($day < 1 || $day > 31) {
+                    return __('For monthly periods, PeriodPoint must be 1-31 (day of month).', 'woocommerce-omnipay').' ';
+                }
+                break;
+
+            case 'W':
+                // 1-7 (Monday to Sunday)
+                $weekday = (int) $periodPoint;
+                if ($weekday < 1 || $weekday > 7) {
+                    return __('For weekly periods, PeriodPoint must be 1-7 (1=Monday, 7=Sunday).', 'woocommerce-omnipay').' ';
+                }
+                break;
+
+            case 'D':
+                // 2-999 (fixed day interval)
+                $interval = (int) $periodPoint;
+                if ($interval < 2 || $interval > 999) {
+                    return __('For daily periods, PeriodPoint must be 2-999 (day interval).', 'woocommerce-omnipay').' ';
+                }
+                break;
         }
 
         return '';

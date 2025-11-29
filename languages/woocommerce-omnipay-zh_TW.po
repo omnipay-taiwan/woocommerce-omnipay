@@ -353,3 +353,22 @@ msgstr "ECPay 模擬付款 (SimulatePaid=1)"
 msgid "Customer submitted last %d digits of remittance account: %s"
 msgstr "客戶已填寫匯款帳號後%d碼：%s"
 
+# NewebPay PeriodPoint Validation
+msgid "Y: MMDD (e.g., 0315), M: 01-31, W: 1-7, D: 2-999"
+msgstr "Y: MMDD (例如 0315), M: 01-31, W: 1-7, D: 2-999"
+
+msgid "For yearly periods, PeriodPoint must be in MMDD format (e.g., 0315 for March 15th)."
+msgstr "年週期的 PeriodPoint 必須是 MMDD 格式（例如 0315 代表 3月15日）。"
+
+msgid "Invalid date in PeriodPoint. Month must be 01-12, day must be 01-31."
+msgstr "PeriodPoint 日期無效。月份必須是 01-12，日期必須是 01-31。"
+
+msgid "For monthly periods, PeriodPoint must be 1-31 (day of month)."
+msgstr "月週期的 PeriodPoint 必須是 1-31（每月第幾天）。"
+
+msgid "For weekly periods, PeriodPoint must be 1-7 (1=Monday, 7=Sunday)."
+msgstr "週週期的 PeriodPoint 必須是 1-7（1=週一，7=週日）。"
+
+msgid "For daily periods, PeriodPoint must be 2-999 (day interval)."
+msgstr "日週期的 PeriodPoint 必須是 2-999（天數間隔）。"
+

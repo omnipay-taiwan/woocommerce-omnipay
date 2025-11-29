@@ -193,6 +193,7 @@ class NewebPayDCAGatewayTest extends TestCase
     public function test_validate_period_constraints_passes_valid_data()
     {
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = 'M';
+        $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = '15';
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
 
         $reflection = new \ReflectionClass($this->gateway);
@@ -204,6 +205,7 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->assertTrue($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
     }
 
@@ -227,6 +229,7 @@ class NewebPayDCAGatewayTest extends TestCase
     public function test_validate_shortcode_mode_periods()
     {
         $_POST['periodType'] = ['Y', 'M', 'W'];
+        $_POST['periodPoint'] = ['0315', '15', '1']; // Valid for each type
         $_POST['periodTimes'] = [50, 12, 24]; // All valid
 
         $reflection = new \ReflectionClass($this->gateway);
@@ -238,6 +241,7 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->assertTrue($result);
 
         unset($_POST['periodType']);
+        unset($_POST['periodPoint']);
         unset($_POST['periodTimes']);
     }
 
@@ -277,7 +281,7 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->assertEquals('1', $saved[0]['periodPoint']);
         // Second period should use defaults from getDcaFieldConfigs for missing values
         $this->assertEquals('W', $saved[1]['periodType']);
-        $this->assertEquals('1', $saved[1]['periodPoint']); // default from config
+        $this->assertEquals('01', $saved[1]['periodPoint']); // default from config
         $this->assertEquals(2, $saved[1]['periodTimes']); // default from config (min value)
         $this->assertEquals(2, $saved[1]['periodStartType']); // default from config
 
