@@ -87,6 +87,40 @@ class ECPayCreditInstallmentGateway extends ECPayGateway
     }
 
     /**
+     * 顯示付款欄位
+     */
+    public function payment_fields()
+    {
+        $installments = $this->get_option('installments', ['3', '6', '12', '18', '24']);
+
+        // Ensure installments is an array
+        if (! is_array($installments)) {
+            $installments = ['3', '6', '12', '18', '24'];
+        }
+
+        // Convert array values to labels
+        $installmentOptions = [];
+        foreach ($installments as $period) {
+            if ($period === '30N') {
+                $installmentOptions[$period] = __('30 期（圓夢分期）', 'woocommerce-omnipay');
+            } else {
+                $installmentOptions[$period] = sprintf(__('%s Installments', 'woocommerce-omnipay'), $period);
+            }
+        }
+
+        wc_get_template(
+            'checkout/installment-form.php',
+            [
+                'gateway_id' => $this->id,
+                'installments' => $installmentOptions,
+                'description' => $this->get_description(),
+            ],
+            '',
+            plugin_dir_path(dirname(dirname(__DIR__))).'/templates/'
+        );
+    }
+
+    /**
      * 準備付款資料
      *
      * @param  \WC_Order  $order  訂單
@@ -97,10 +131,16 @@ class ECPayCreditInstallmentGateway extends ECPayGateway
         $data = parent::preparePaymentData($order);
         $data['ChoosePayment'] = $this->paymentType;
 
-        // 加入分期期數參數（multiselect 回傳陣列，需轉為逗號分隔字串）
-        // 使用 WC_Payment_Gateway::get_option 繞過 OmnipayGateway 的 sanitize 處理
-        $installments = \WC_Payment_Gateway::get_option('installments', ['3', '6', '12', '18', '24']);
-        $data['CreditInstallment'] = is_array($installments) ? implode(',', $installments) : $installments;
+        // Use the installment period selected by the user
+        $selectedInstallment = isset($_POST['omnipay_installment']) ? sanitize_text_field($_POST['omnipay_installment']) : '';
+
+        // If no installment is selected from POST, use all available installments
+        if (empty($selectedInstallment)) {
+            $installments = \WC_Payment_Gateway::get_option('installments', ['3', '6', '12', '18', '24']);
+            $data['CreditInstallment'] = is_array($installments) ? implode(',', $installments) : $installments;
+        } else {
+            $data['CreditInstallment'] = $selectedInstallment;
+        }
 
         return $data;
     }

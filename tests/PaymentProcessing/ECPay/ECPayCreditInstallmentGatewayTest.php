@@ -82,4 +82,36 @@ class ECPayCreditInstallmentGatewayTest extends TestCase
 
         $this->assertFalse($this->gateway->is_available());
     }
+
+    public function test_process_payment_sends_selected_installment_from_post_data()
+    {
+        $order = $this->createOrder(3000);
+
+        // Simulate user selecting 6 installments
+        $_POST['omnipay_installment'] = '6';
+
+        $result = $this->gateway->process_payment($order->get_id());
+
+        $this->assertEquals('success', $result['result']);
+
+        $redirectData = get_transient('omnipay_redirect_'.$order->get_id());
+        $this->assertEquals('6', $redirectData['data']['CreditInstallment']);
+
+        unset($_POST['omnipay_installment']);
+    }
+
+    public function test_payment_fields_includes_installment_select()
+    {
+        $this->gateway->update_option('installments', ['3', '6', '12']);
+        $this->gateway->init_settings();
+
+        ob_start();
+        $this->gateway->payment_fields();
+        $output = ob_get_clean();
+
+        $this->assertStringContainsString('omnipay_installment', $output);
+        $this->assertStringContainsString('value="3"', $output);
+        $this->assertStringContainsString('value="6"', $output);
+        $this->assertStringContainsString('value="12"', $output);
+    }
 }
