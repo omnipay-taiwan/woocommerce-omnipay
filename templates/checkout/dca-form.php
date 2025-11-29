@@ -17,7 +17,7 @@ $periodTypeLabels = [
     'D' => __('day', 'woocommerce-omnipay'),
 ];
 ?>
-<select id="omnipay_dca_period" name="omnipay_dca_period">
+<select id="omnipay_period" name="omnipay_period">
 <?php foreach ($periods as $period) { ?>
     <?php
     // Build value from period fields
@@ -46,7 +46,7 @@ $periodTypeLabels = [
     <option value="<?php echo esc_attr($value); ?>"><?php echo esc_html($label); ?></option>
 <?php } ?>
 </select>
-<div id="omnipay_dca_show"></div>
+<div id="omnipay_period_info"></div>
 <hr style="margin: 12px 0px;background-color: #eeeeee;">
 <p style="font-size: 0.8em;color: #c9302c;">
     <?php echo wp_kses_post($warningMessage); ?>

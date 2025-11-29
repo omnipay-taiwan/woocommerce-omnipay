@@ -158,15 +158,19 @@ class ECPayDCAGateway extends ECPayGateway
         $dcaPeriods = [];
         if (isset($_POST['periodType']) && is_array($_POST['periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['periodType']);
-            $frequencies = array_map('absint', $_POST['frequency']);
-            $execTimes = array_map('absint', $_POST['execTimes']);
+            $frequencies = isset($_POST['frequency']) && is_array($_POST['frequency'])
+                ? array_map('absint', $_POST['frequency'])
+                : [];
+            $execTimes = isset($_POST['execTimes']) && is_array($_POST['execTimes'])
+                ? array_map('absint', $_POST['execTimes'])
+                : [];
 
             foreach ($periodTypes as $i => $periodType) {
                 if (! empty($periodType)) {
                     $dcaPeriods[] = [
                         'periodType' => $periodType,
-                        'frequency' => $frequencies[$i],
-                        'execTimes' => $execTimes[$i],
+                        'frequency' => $frequencies[$i] ?? 0,
+                        'execTimes' => $execTimes[$i] ?? 0,
                     ];
                 }
             }
@@ -342,7 +346,7 @@ class ECPayDCAGateway extends ECPayGateway
      */
     protected function getShortcodeModeDcaData(): array
     {
-        $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
+        $selectedPeriod = sanitize_text_field($_POST['omnipay_period']);
         $parts = explode('_', $selectedPeriod);
 
         if (count($parts) === 3) {

@@ -95,7 +95,7 @@ class NewebPayDCAGateway extends NewebPayGateway
         $this->form_fields['periodStartType'] = [
             'title' => __('Period Start Type', 'woocommerce-omnipay'),
             'type' => 'select',
-            'default' => 2,
+            'default' => '2',
             'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
             'options' => [
                 '1' => __('1 - Authorize and start immediately', 'woocommerce-omnipay'),
@@ -133,7 +133,7 @@ class NewebPayDCAGateway extends NewebPayGateway
             'periodType' => 'M',
             'periodPoint' => '1',
             'periodTimes' => 12,
-            'periodStartType' => 2,
+            'periodStartType' => '2',
         ];
     }
 
@@ -355,7 +355,7 @@ class NewebPayDCAGateway extends NewebPayGateway
      */
     protected function getShortcodeModeDcaData(): array
     {
-        $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
+        $selectedPeriod = sanitize_text_field($_POST['omnipay_period']);
         $parts = explode('_', $selectedPeriod);
 
         if (count($parts) === 4) {

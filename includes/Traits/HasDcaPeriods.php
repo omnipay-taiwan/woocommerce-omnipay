@@ -96,7 +96,7 @@ trait HasDcaPeriods
      */
     protected function isBlocksMode(): bool
     {
-        return ! isset($_POST['omnipay_dca_period']);
+        return ! isset($_POST['omnipay_period']);
     }
 
     /**
