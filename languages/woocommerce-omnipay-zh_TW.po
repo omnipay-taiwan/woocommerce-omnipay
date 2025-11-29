@@ -260,23 +260,20 @@ msgid "day"
 msgstr "天"
 
 # DCA Admin Settings
-msgid "There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections."
-msgstr "定期定額設定分為兩個區塊：WooCommerce Blocks 和 WooCommerce Shortcode。請填寫符合您目前頁面配置的區塊。如果您不確定使用哪種頁面配置，請在兩個區塊中輸入相同的設定。"
+msgid "Configure settings for both WooCommerce Blocks and Shortcode checkout. Fill in the section matching your checkout page type."
+msgstr "請為 WooCommerce Blocks 和 Shortcode 結帳頁面設定。填寫與您的結帳頁面類型相符的區塊。"
 
-msgid "DCA (Support WooCommerce Blocks)"
-msgstr "定期定額（支援 WooCommerce Blocks）"
+msgid "WooCommerce Blocks Checkout"
+msgstr "WooCommerce Blocks 結帳"
 
-msgid "The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully"
-msgstr "以下設定支援 WooCommerce Blocks 結帳頁面，不支援使用傳統的 shortcode 結帳。請謹慎設定"
+msgid "These settings apply when using WooCommerce Blocks checkout page."
+msgstr "使用 WooCommerce Blocks 結帳頁面時套用這些設定。"
 
-msgid "DCA (Support WooCommerce Shortcode)"
-msgstr "定期定額（支援 WooCommerce Shortcode）"
+msgid "Shortcode Checkout"
+msgstr "Shortcode 結帳"
 
-msgid "The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully"
-msgstr "以下設定支援傳統的 shortcode 結帳頁面，不支援使用 WooCommerce Blocks 結帳。請謹慎設定"
-
-msgid "Support WooCommerce checkout blocks"
-msgstr "支援 WooCommerce 結帳區塊"
+msgid "These settings apply when using traditional shortcode-based checkout page."
+msgstr "使用傳統 shortcode 結帳頁面時套用這些設定。"
 
 msgid "Period Type"
 msgstr "週期類型"

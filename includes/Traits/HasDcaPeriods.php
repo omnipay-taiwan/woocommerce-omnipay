@@ -45,13 +45,13 @@ trait HasDcaPeriods
         $this->form_fields['blocks_caption'] = [
             'title' => '',
             'type' => 'title',
-            'description' => __('There are two section fields for DCA settings: WooCommerce Blocks and Woocommerce Shortcode. Please fill out the section that matches your current page configuration. If you are uncertain about which page configuration you are using, input the identical setting in both sections.', 'woocommerce-omnipay'),
+            'description' => __('Configure settings for both WooCommerce Blocks and Shortcode checkout. Fill in the section matching your checkout page type.', 'woocommerce-omnipay'),
         ];
 
         $this->form_fields['blocks_title'] = [
-            'title' => __('DCA (Support WooCommerce Blocks)', 'woocommerce-omnipay'),
+            'title' => __('WooCommerce Blocks Checkout', 'woocommerce-omnipay'),
             'type' => 'title',
-            'description' => __('The following settings support the WooCommerce Blocks checkout page and do not support the use of the traditional shortcode-based checkout. Please configure carefully', 'woocommerce-omnipay'),
+            'description' => __('These settings apply when using WooCommerce Blocks checkout page.', 'woocommerce-omnipay'),
         ];
     }
 
@@ -66,9 +66,9 @@ trait HasDcaPeriods
         ];
 
         $this->form_fields['shortcode_title'] = [
-            'title' => __('DCA (Support WooCommerce Shortcode)', 'woocommerce-omnipay'),
+            'title' => __('Shortcode Checkout', 'woocommerce-omnipay'),
             'type' => 'title',
-            'description' => __('The following settings support the traditional shortcode-based checkout page and do not support the use of the WooCommerce Blocks checkout. Please configure carefully', 'woocommerce-omnipay'),
+            'description' => __('These settings apply when using traditional shortcode-based checkout page.', 'woocommerce-omnipay'),
         ];
 
         $this->form_fields['periods'] = [

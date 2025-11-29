@@ -49,7 +49,7 @@ class NewebPayDCAGateway extends NewebPayGateway
             'title' => __('Period Type', 'woocommerce-omnipay'),
             'type' => 'select',
             'default' => 'M',
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'options' => [
                 'Y' => __('Year', 'woocommerce-omnipay'),
                 'M' => __('Month', 'woocommerce-omnipay'),
@@ -62,14 +62,14 @@ class NewebPayDCAGateway extends NewebPayGateway
             'title' => __('Period Point', 'woocommerce-omnipay'),
             'type' => 'text',
             'default' => '1',
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
         ];
 
         $this->form_fields['periodTimes'] = [
             'title' => __('Period Times', 'woocommerce-omnipay'),
             'type' => 'number',
             'default' => 2,
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'custom_attributes' => [
                 'min' => 2,
                 'max' => 99,
@@ -81,7 +81,7 @@ class NewebPayDCAGateway extends NewebPayGateway
             'title' => __('Period Start Type', 'woocommerce-omnipay'),
             'type' => 'select',
             'default' => '2',
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'options' => [
                 '1' => __('1 - Authorize and start immediately', 'woocommerce-omnipay'),
                 '2' => __('2 - Authorize only, start manually', 'woocommerce-omnipay'),

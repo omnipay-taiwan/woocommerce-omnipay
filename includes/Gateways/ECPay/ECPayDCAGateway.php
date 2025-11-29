@@ -49,7 +49,7 @@ class ECPayDCAGateway extends ECPayGateway
             'title' => __('Period Type', 'woocommerce-omnipay'),
             'type' => 'select',
             'default' => 'Y',
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'options' => [
                 'Y' => __('Year', 'woocommerce-omnipay'),
                 'M' => __('Month', 'woocommerce-omnipay'),
@@ -61,7 +61,7 @@ class ECPayDCAGateway extends ECPayGateway
             'title' => __('Frequency', 'woocommerce-omnipay'),
             'type' => 'number',
             'default' => 1,
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'custom_attributes' => [
                 'min' => 1,
                 'step' => 1,
@@ -72,7 +72,7 @@ class ECPayDCAGateway extends ECPayGateway
             'title' => __('Execute Times', 'woocommerce-omnipay'),
             'type' => 'number',
             'default' => 2,
-            'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
+            'description' => '',
             'custom_attributes' => [
                 'min' => 1,
                 'step' => 1,
