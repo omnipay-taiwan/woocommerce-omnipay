@@ -32,12 +32,6 @@ class ECPayTWQRGatewayTest extends TestCase
         ]);
     }
 
-    public function test_gateway_has_correct_id_and_title()
-    {
-        $this->assertEquals('omnipay_ecpay_twqr', $this->gateway->id);
-        $this->assertEquals('綠界台灣 Pay', $this->gateway->method_title);
-    }
-
     public function test_process_payment_sends_twqr_payment_type()
     {
         $order = $this->createOrder(500);

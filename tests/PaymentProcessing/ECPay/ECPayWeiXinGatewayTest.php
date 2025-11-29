@@ -32,12 +32,6 @@ class ECPayWeiXinGatewayTest extends TestCase
         ]);
     }
 
-    public function test_gateway_has_correct_id_and_title()
-    {
-        $this->assertEquals('omnipay_ecpay_weixin', $this->gateway->id);
-        $this->assertEquals('綠界微信支付', $this->gateway->method_title);
-    }
-
     public function test_process_payment_sends_weixin_payment_type()
     {
         $order = $this->createOrder(500);

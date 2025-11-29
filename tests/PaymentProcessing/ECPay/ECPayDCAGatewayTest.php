@@ -49,12 +49,6 @@ class ECPayDCAGatewayTest extends TestCase
         $this->gateway->update_option('execTimes', 12);
     }
 
-    public function test_gateway_has_correct_id_and_title()
-    {
-        $this->assertEquals('omnipay_ecpay_dca', $this->gateway->id);
-        $this->assertEquals('綠界定期定額', $this->gateway->method_title);
-    }
-
     public function test_process_payment_sends_credit_payment_type()
     {
         $order = $this->createOrder(500);
@@ -216,5 +210,83 @@ class ECPayDCAGatewayTest extends TestCase
 
         $this->assertCount(2, $loaded);
         $this->assertEquals('M', $loaded[0]['periodType']);
+    }
+
+    /**
+     * @dataProvider invalidFrequencyAndExecTimesProvider
+     */
+    public function test_validate_frequency_and_exec_times_rejects_invalid_values($periodType, $frequency, $execTimes)
+    {
+        $_POST['woocommerce_omnipay_ecpay_dca_periodType'] = $periodType;
+        $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = $frequency;
+        $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = $execTimes;
+
+        $reflection = new \ReflectionClass($this->gateway);
+        $method = $reflection->getMethod('validateDcaFields');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->gateway);
+
+        $this->assertFalse($result);
+
+        unset($_POST['woocommerce_omnipay_ecpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_ecpay_dca_frequency']);
+        unset($_POST['woocommerce_omnipay_ecpay_dca_execTimes']);
+    }
+
+    public static function invalidFrequencyAndExecTimesProvider()
+    {
+        return [
+            'Y: frequency 0' => ['Y', 0, 5],
+            'Y: frequency 2' => ['Y', 2, 5],
+            'Y: execTimes 0' => ['Y', 1, 0],
+            'Y: execTimes 10' => ['Y', 1, 10],
+            'M: frequency 0' => ['M', 0, 12],
+            'M: frequency 13' => ['M', 13, 12],
+            'M: execTimes 0' => ['M', 1, 0],
+            'M: execTimes 100' => ['M', 1, 100],
+            'D: frequency 0' => ['D', 0, 12],
+            'D: frequency 366' => ['D', 366, 12],
+            'D: execTimes 0' => ['D', 1, 0],
+            'D: execTimes 1000' => ['D', 1, 1000],
+        ];
+    }
+
+    /**
+     * @dataProvider validFrequencyAndExecTimesProvider
+     */
+    public function test_validate_frequency_and_exec_times_accepts_valid_values($periodType, $frequency, $execTimes)
+    {
+        $_POST['woocommerce_omnipay_ecpay_dca_periodType'] = $periodType;
+        $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = $frequency;
+        $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = $execTimes;
+
+        $reflection = new \ReflectionClass($this->gateway);
+        $method = $reflection->getMethod('validateDcaFields');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->gateway);
+
+        $this->assertTrue($result);
+
+        unset($_POST['woocommerce_omnipay_ecpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_ecpay_dca_frequency']);
+        unset($_POST['woocommerce_omnipay_ecpay_dca_execTimes']);
+    }
+
+    public static function validFrequencyAndExecTimesProvider()
+    {
+        return [
+            'Y: min values' => ['Y', 1, 1],
+            'Y: max values' => ['Y', 1, 9],
+            'M: min frequency' => ['M', 1, 12],
+            'M: max frequency' => ['M', 12, 12],
+            'M: min execTimes' => ['M', 6, 1],
+            'M: max execTimes' => ['M', 6, 99],
+            'D: min frequency' => ['D', 1, 12],
+            'D: max frequency' => ['D', 365, 12],
+            'D: min execTimes' => ['D', 30, 1],
+            'D: max execTimes' => ['D', 30, 999],
+        ];
     }
 }

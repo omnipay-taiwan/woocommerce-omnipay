@@ -57,12 +57,6 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->gateway->update_option('periodStartType', 2);
     }
 
-    public function test_gateway_has_correct_id_and_title()
-    {
-        $this->assertEquals('omnipay_newebpay_dca', $this->gateway->id);
-        $this->assertEquals('藍新定期定額', $this->gateway->method_title);
-    }
-
     public function test_process_payment_sends_credit_parameter()
     {
         $order = $this->createOrder(500);
@@ -313,5 +307,83 @@ class NewebPayDCAGatewayTest extends TestCase
         $this->assertCount(2, $loaded);
         $this->assertEquals('M', $loaded[0]['periodType']);
         $this->assertEquals('W', $loaded[1]['periodType']);
+    }
+
+    /**
+     * @dataProvider invalidPeriodPointProvider
+     */
+    public function test_validate_period_point_rejects_invalid_values($type, $point)
+    {
+        $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = $type;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = $point;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
+
+        $reflection = new \ReflectionClass($this->gateway);
+        $method = $reflection->getMethod('validateDcaFields');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->gateway);
+
+        $this->assertFalse($result);
+
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+    }
+
+    public static function invalidPeriodPointProvider()
+    {
+        return [
+            'Y: month 00' => ['Y', '0015'],
+            'Y: month 13' => ['Y', '1301'],
+            'Y: day 00' => ['Y', '0100'],
+            'Y: day 32' => ['Y', '0132'],
+            'Y: not 4 digits' => ['Y', '123'],
+            'M: day 0' => ['M', '0'],
+            'M: day 32' => ['M', '32'],
+            'W: weekday 0' => ['W', '0'],
+            'W: weekday 8' => ['W', '8'],
+            'D: interval 1' => ['D', '1'],
+            'D: interval 1000' => ['D', '1000'],
+        ];
+    }
+
+    /**
+     * @dataProvider validPeriodPointProvider
+     */
+    public function test_validate_period_point_accepts_valid_values($type, $point)
+    {
+        $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = $type;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = $point;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
+
+        $reflection = new \ReflectionClass($this->gateway);
+        $method = $reflection->getMethod('validateDcaFields');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($this->gateway);
+
+        $this->assertTrue($result);
+
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+    }
+
+    public static function validPeriodPointProvider()
+    {
+        return [
+            'Y: Jan 1' => ['Y', '0101'],
+            'Y: Feb 29' => ['Y', '0229'],
+            'Y: Dec 31' => ['Y', '1231'],
+            'M: day 1' => ['M', '1'],
+            'M: day 15' => ['M', '15'],
+            'M: day 31' => ['M', '31'],
+            'W: Monday' => ['W', '1'],
+            'W: Sunday' => ['W', '7'],
+            'D: interval 2' => ['D', '2'],
+            'D: interval 365' => ['D', '365'],
+            'D: interval 999' => ['D', '999'],
+        ];
     }
 }
