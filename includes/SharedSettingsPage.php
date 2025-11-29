@@ -77,10 +77,30 @@ class SharedSettingsPage
         foreach ($this->gateways as $gateway) {
             $name = $gateway['gateway'];
             $key = strtolower($name);
-            $sections[$key] = $name;
+            // Translate gateway name for display
+            $sections[$key] = $this->translateGatewayName($name);
         }
 
         return $sections;
+    }
+
+    /**
+     * Translate gateway name for display
+     *
+     * @param  string  $name  Gateway name
+     * @return string
+     */
+    private function translateGatewayName($name)
+    {
+        $translations = [
+            'ECPay' => __('ECPay', 'woocommerce-omnipay'),
+            'NewebPay' => __('NewebPay', 'woocommerce-omnipay'),
+            'YiPay' => __('YiPay', 'woocommerce-omnipay'),
+            'BankTransfer' => __('Bank Transfer', 'woocommerce-omnipay'),
+            'Dummy' => __('Dummy Gateway', 'woocommerce-omnipay'),
+        ];
+
+        return $translations[$name] ?? $name;
     }
 
     /**
