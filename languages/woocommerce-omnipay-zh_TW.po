@@ -339,3 +339,15 @@ msgstr "綠界微信支付"
 
 msgid "Pay with WeChat Pay"
 msgstr "使用微信支付"
+
+msgid "Security verification failed"
+msgstr "安全驗證失敗"
+
+msgid "Order verification failed"
+msgstr "訂單驗證失敗"
+
+msgid "Please enter 5 digits"
+msgstr "請輸入5位數字"
+
+msgid "Successfully submitted"
+msgstr "已成功送出"

@@ -117,7 +117,7 @@ class BankTransferGateway extends OmnipayGateway
 
         // 驗證 nonce
         if (! wp_verify_nonce($nonce, 'omnipay_remittance_nonce')) {
-            $this->sendJsonResponse(false, __('安全驗證失敗', 'woocommerce-omnipay'));
+            $this->sendJsonResponse(false, __('Security verification failed', 'woocommerce-omnipay'));
 
             return;
         }
@@ -125,14 +125,14 @@ class BankTransferGateway extends OmnipayGateway
         // 驗證訂單
         $order = $this->orders->findById($order_id);
         if (! $order || $order->get_order_key() !== $order_key) {
-            $this->sendJsonResponse(false, __('訂單驗證失敗', 'woocommerce-omnipay'));
+            $this->sendJsonResponse(false, __('Order verification failed', 'woocommerce-omnipay'));
 
             return;
         }
 
         // 驗證格式（必須是5位數字）
         if (! preg_match('/^\d{5}$/', $last5)) {
-            $this->sendJsonResponse(false, __('請輸入5位數字', 'woocommerce-omnipay'));
+            $this->sendJsonResponse(false, __('Please enter 5 digits', 'woocommerce-omnipay'));
 
             return;
         }
@@ -140,7 +140,7 @@ class BankTransferGateway extends OmnipayGateway
         // 儲存
         $this->orders->saveRemittanceLast5($order, $last5);
 
-        $this->sendJsonResponse(true, __('已成功送出', 'woocommerce-omnipay'));
+        $this->sendJsonResponse(true, __('Successfully submitted', 'woocommerce-omnipay'));
     }
 
     /**
