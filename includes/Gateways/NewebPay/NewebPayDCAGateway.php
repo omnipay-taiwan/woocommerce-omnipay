@@ -224,19 +224,25 @@ class NewebPayDCAGateway extends NewebPayGateway
     {
         // Save DCA periods
         $dca_periods = [];
-        if (isset($_POST['newebpay_dca_periodType'])) {
+        if (isset($_POST['newebpay_dca_periodType']) && is_array($_POST['newebpay_dca_periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['newebpay_dca_periodType']);
-            $periodPoints = array_map('sanitize_text_field', $_POST['newebpay_dca_periodPoint']);
-            $periodTimes = array_map('absint', $_POST['newebpay_dca_periodTimes']);
-            $periodStartTypes = array_map('absint', $_POST['newebpay_dca_periodStartType']);
+            $periodPoints = isset($_POST['newebpay_dca_periodPoint']) && is_array($_POST['newebpay_dca_periodPoint'])
+                ? array_map('sanitize_text_field', $_POST['newebpay_dca_periodPoint'])
+                : [];
+            $periodTimes = isset($_POST['newebpay_dca_periodTimes']) && is_array($_POST['newebpay_dca_periodTimes'])
+                ? array_map('absint', $_POST['newebpay_dca_periodTimes'])
+                : [];
+            $periodStartTypes = isset($_POST['newebpay_dca_periodStartType']) && is_array($_POST['newebpay_dca_periodStartType'])
+                ? array_map('absint', $_POST['newebpay_dca_periodStartType'])
+                : [];
 
             foreach ($periodTypes as $i => $periodType) {
                 if (! empty($periodType)) {
                     $dca_periods[] = [
                         'periodType' => $periodType,
-                        'periodPoint' => $periodPoints[$i],
-                        'periodTimes' => $periodTimes[$i],
-                        'periodStartType' => $periodStartTypes[$i],
+                        'periodPoint' => $periodPoints[$i] ?? '',
+                        'periodTimes' => $periodTimes[$i] ?? 0,
+                        'periodStartType' => $periodStartTypes[$i] ?? 0,
                     ];
                 }
             }
@@ -336,6 +342,12 @@ class NewebPayDCAGateway extends NewebPayGateway
                 $data['PeriodPoint'] = $periodPoint;
                 $data['PeriodTimes'] = (int) $periodTimes;
                 $data['PeriodStartType'] = (int) $periodStartType;
+            } else {
+                // Fallback to default values if format is invalid
+                $data['PeriodType'] = 'M';
+                $data['PeriodPoint'] = '';
+                $data['PeriodTimes'] = 12;
+                $data['PeriodStartType'] = 2;
             }
         }
 

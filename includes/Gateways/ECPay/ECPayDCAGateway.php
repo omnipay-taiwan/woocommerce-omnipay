@@ -182,8 +182,12 @@ class ECPayDCAGateway extends ECPayGateway
         // Validate Shortcode mode periods
         if (isset($_POST['dca_periodType']) && is_array($_POST['dca_periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['dca_periodType']);
-            $frequencies = array_map('absint', $_POST['dca_frequency'] ?? []);
-            $execTimes = array_map('absint', $_POST['dca_execTimes'] ?? []);
+            $frequencies = isset($_POST['dca_frequency']) && is_array($_POST['dca_frequency'])
+                ? array_map('absint', $_POST['dca_frequency'])
+                : [];
+            $execTimes = isset($_POST['dca_execTimes']) && is_array($_POST['dca_execTimes'])
+                ? array_map('absint', $_POST['dca_execTimes'])
+                : [];
 
             foreach ($periodTypes as $i => $periodType) {
                 if (! empty($periodType)) {
@@ -329,6 +333,11 @@ class ECPayDCAGateway extends ECPayGateway
                 $data['PeriodType'] = $periodType;
                 $data['Frequency'] = (int) $frequency;
                 $data['ExecTimes'] = (int) $execTimes;
+            } else {
+                // Fallback to default values if format is invalid
+                $data['PeriodType'] = 'M';
+                $data['Frequency'] = 1;
+                $data['ExecTimes'] = 2;
             }
         }
 
