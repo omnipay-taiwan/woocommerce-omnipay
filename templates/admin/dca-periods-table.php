@@ -93,23 +93,5 @@ $colspan = count($headers) + 1; // +1 for sort column
         <script type="text/template" id="<?php echo esc_attr($fieldKey); ?>-row-template">
             <?php $renderRow('{{INDEX}}', $defaultPeriod); ?>
         </script>
-
-        <!-- JavaScript for add/remove functionality -->
-        <script type="text/javascript">
-            jQuery(function($) {
-                $('#<?php echo esc_js($fieldKey); ?>').on('click', '.add', function(e) {
-                    e.preventDefault();
-                    var size = $('#<?php echo esc_js($fieldKey); ?> tbody .account').length;
-                    var template = $('#<?php echo esc_js($fieldKey); ?>-row-template').html();
-                    var newRow = template.replace(/\{\{INDEX\}\}/g, size);
-                    $(newRow).appendTo('#<?php echo esc_js($fieldKey); ?> table tbody');
-                });
-
-                $('#<?php echo esc_js($fieldKey); ?>').on('click', '.remove_rows', function(e) {
-                    e.preventDefault();
-                    $('#<?php echo esc_js($fieldKey); ?> tbody tr').remove();
-                });
-            });
-        </script>
     </td>
 </tr>

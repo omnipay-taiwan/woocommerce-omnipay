@@ -14,9 +14,13 @@
      */
     function updatePeriodConstraints(periodTypeInput) {
         const row = periodTypeInput.closest('tr');
-        const frequencyInput = row.querySelector('input[name^="dca_frequency"]');
-        const execTimesInput = row.querySelector('input[name^="dca_execTimes"]');
+        const frequencyInput = row.querySelector('input[name^="frequency"]');
+        const execTimesInput = row.querySelector('input[name^="execTimes"]');
         const periodType = periodTypeInput.value.toUpperCase();
+
+        if (!frequencyInput || !execTimesInput) {
+            return; // Not ECPay gateway, skip
+        }
 
         let freqMax = 365;
         let execMax = 999;
@@ -73,13 +77,13 @@
 
         // 監聽 periodType 變更，動態更新限制
         container.addEventListener('input', function(e) {
-            if (e.target.name && e.target.name.startsWith('dca_periodType')) {
+            if (e.target.name && e.target.name.startsWith('periodType')) {
                 updatePeriodConstraints(e.target);
             }
         });
 
         // 初始化現有 rows 的限制
-        const periodTypeInputs = tbody.querySelectorAll('input[name^="dca_periodType"]');
+        const periodTypeInputs = tbody.querySelectorAll('input[name^="periodType"]');
         periodTypeInputs.forEach(function(input) {
             updatePeriodConstraints(input);
         });
@@ -90,7 +94,7 @@
      */
     function initAllDcaTables() {
         // 自動偵測所有 DCA periods table
-        const tables = document.querySelectorAll('[id$="_dca_periods"]');
+        const tables = document.querySelectorAll('[id$="_periods"]');
         tables.forEach(function(table) {
             initDcaPeriodsTable(table.id);
         });
