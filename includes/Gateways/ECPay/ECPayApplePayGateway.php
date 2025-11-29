@@ -24,8 +24,8 @@ class ECPayApplePayGateway extends ECPayGateway
     public function __construct(array $config)
     {
         $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_applepay';
-        $config['title'] = $config['title'] ?? '綠界 Apple Pay';
-        $config['description'] = $config['description'] ?? '使用 Apple Pay 付款';
+        $config['title'] = $config['title'] ?? __('ECPay Apple Pay', 'woocommerce-omnipay');
+        $config['description'] = $config['description'] ?? __('Pay with Apple Pay', 'woocommerce-omnipay');
 
         parent::__construct($config);
     }

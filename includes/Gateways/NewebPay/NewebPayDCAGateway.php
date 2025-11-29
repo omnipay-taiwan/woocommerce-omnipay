@@ -31,8 +31,8 @@ class NewebPayDCAGateway extends NewebPayGateway
     public function __construct(array $config)
     {
         $config['gateway_id'] = $config['gateway_id'] ?? 'newebpay_dca';
-        $config['title'] = $config['title'] ?? '藍新定期定額';
-        $config['description'] = $config['description'] ?? '使用信用卡定期定額付款';
+        $config['title'] = $config['title'] ?? __('NewebPay Recurring Payment', 'woocommerce-omnipay');
+        $config['description'] = $config['description'] ?? __('Pay with credit card recurring payment', 'woocommerce-omnipay');
 
         parent::__construct($config);
 

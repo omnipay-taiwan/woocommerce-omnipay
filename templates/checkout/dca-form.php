@@ -32,5 +32,5 @@ $period_type_labels = [
 <div id="omnipay_dca_show"></div>
 <hr style="margin: 12px 0px;background-color: #eeeeee;">
 <p style="font-size: 0.8em;color: #c9302c;">
-    <?php echo $warning_message; ?>
+    <?php echo wp_kses_post($warning_message); ?>
 </p>

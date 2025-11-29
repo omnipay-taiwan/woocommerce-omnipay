@@ -24,8 +24,8 @@ class ECPayWeiXinGateway extends ECPayGateway
     public function __construct(array $config)
     {
         $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_weixin';
-        $config['title'] = $config['title'] ?? '綠界微信支付';
-        $config['description'] = $config['description'] ?? '使用微信支付';
+        $config['title'] = $config['title'] ?? __('ECPay WeChat Pay', 'woocommerce-omnipay');
+        $config['description'] = $config['description'] ?? __('Pay with WeChat Pay', 'woocommerce-omnipay');
 
         parent::__construct($config);
     }

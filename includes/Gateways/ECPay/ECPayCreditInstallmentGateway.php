@@ -24,8 +24,8 @@ class ECPayCreditInstallmentGateway extends ECPayGateway
     public function __construct(array $config)
     {
         $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_credit_installment';
-        $config['title'] = $config['title'] ?? '綠界信用卡分期';
-        $config['description'] = $config['description'] ?? '使用信用卡分期付款';
+        $config['title'] = $config['title'] ?? __('ECPay Credit Card Installment', 'woocommerce-omnipay');
+        $config['description'] = $config['description'] ?? __('Pay with credit card installment', 'woocommerce-omnipay');
 
         parent::__construct($config);
     }
