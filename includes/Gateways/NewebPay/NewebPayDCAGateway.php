@@ -68,10 +68,11 @@ class NewebPayDCAGateway extends NewebPayGateway
         $this->form_fields['periodTimes'] = [
             'title' => __('Period Times', 'woocommerce-omnipay'),
             'type' => 'number',
-            'default' => 12,
+            'default' => 2,
             'description' => __('Support WooCommerce checkout blocks', 'woocommerce-omnipay'),
             'custom_attributes' => [
-                'min' => 1,
+                'min' => 2,
+                'max' => 99,
                 'step' => 1,
             ],
         ];
@@ -99,7 +100,7 @@ class NewebPayDCAGateway extends NewebPayGateway
         return [
             'periodType' => 'M',
             'periodPoint' => '1',
-            'periodTimes' => 12,
+            'periodTimes' => 2,
             'periodStartType' => '2',
         ];
     }
@@ -125,8 +126,8 @@ class NewebPayDCAGateway extends NewebPayGateway
             [
                 'name' => 'periodTimes',
                 'type' => 'number',
-                'default' => 12,
-                'attributes' => ['min' => '1', 'required' => 'required'],
+                'default' => 2,
+                'attributes' => ['min' => '2', 'max' => '99', 'required' => 'required'],
             ],
             [
                 'name' => 'periodStartType',
