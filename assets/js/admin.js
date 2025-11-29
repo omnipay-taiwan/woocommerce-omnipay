@@ -8,40 +8,71 @@
 
     /**
      * 根據週期類型更新欄位限制
-     * Year (Y): frequency=1, execTimes=1-9
-     * Month (M): frequency=1-12, execTimes=1-99
-     * Day (D): frequency=1-365, execTimes=1-999
+     *
+     * ECPay:
+     * - Year (Y): frequency=1, execTimes=1-9
+     * - Month (M): frequency=1-12, execTimes=1-99
+     * - Day (D): frequency=1-365, execTimes=1-999
+     *
+     * NewebPay:
+     * - Year (Y): periodTimes=2-99
+     * - Month (M): periodTimes=2-99
+     * - Week (W): periodTimes=2-99
+     * - Day (D): periodTimes=2-999
      */
     function updatePeriodConstraints(periodTypeInput) {
         const row = periodTypeInput.closest('tr');
-        const frequencyInput = row.querySelector('input[name^="frequency"]');
-        const execTimesInput = row.querySelector('input[name^="execTimes"]');
         const periodType = periodTypeInput.value.toUpperCase();
 
-        if (!frequencyInput || !execTimesInput) {
-            return; // Not ECPay gateway, skip
+        // ECPay fields
+        const frequencyInput = row.querySelector('input[name^="frequency"]');
+        const execTimesInput = row.querySelector('input[name^="execTimes"]');
+
+        // NewebPay fields
+        const periodTimesInput = row.querySelector('input[name^="periodTimes"]');
+
+        // ECPay DCA constraints
+        if (frequencyInput && execTimesInput) {
+            let freqMax = 365;
+            let execMax = 999;
+
+            if (periodType === 'Y') {
+                freqMax = 1;
+                execMax = 9;
+            } else if (periodType === 'M') {
+                freqMax = 12;
+                execMax = 99;
+            }
+
+            frequencyInput.setAttribute('max', freqMax);
+            execTimesInput.setAttribute('max', execMax);
+
+            if (parseInt(frequencyInput.value) > freqMax) {
+                frequencyInput.value = freqMax;
+            }
+            if (parseInt(execTimesInput.value) > execMax) {
+                execTimesInput.value = execMax;
+            }
         }
 
-        let freqMax = 365;
-        let execMax = 999;
+        // NewebPay DCA constraints
+        if (periodTimesInput) {
+            let timesMax = 99;
+            let timesMin = 2;
 
-        if (periodType === 'Y') {
-            freqMax = 1;
-            execMax = 9;
-        } else if (periodType === 'M') {
-            freqMax = 12;
-            execMax = 99;
-        }
+            if (periodType === 'D') {
+                timesMax = 999;
+            }
 
-        frequencyInput.setAttribute('max', freqMax);
-        execTimesInput.setAttribute('max', execMax);
+            periodTimesInput.setAttribute('min', timesMin);
+            periodTimesInput.setAttribute('max', timesMax);
 
-        // 調整超出範圍的值
-        if (parseInt(frequencyInput.value) > freqMax) {
-            frequencyInput.value = freqMax;
-        }
-        if (parseInt(execTimesInput.value) > execMax) {
-            execTimesInput.value = execMax;
+            const currentValue = parseInt(periodTimesInput.value);
+            if (currentValue > timesMax) {
+                periodTimesInput.value = timesMax;
+            } else if (currentValue < timesMin) {
+                periodTimesInput.value = timesMin;
+            }
         }
     }
 
