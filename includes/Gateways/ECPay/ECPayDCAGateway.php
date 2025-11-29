@@ -124,84 +124,11 @@ class ECPayDCAGateway extends ECPayGateway
      */
     public function generate_dca_periods_html($key, $data)
     {
-        $field_key = $this->get_field_key($key);
-        $defaults = [
-            'title' => '',
-            'class' => '',
-        ];
-
-        $data = wp_parse_args($data, $defaults);
-
-        ob_start();
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc"><?php echo wp_kses_post($data['title']); ?></th>
-            <td class="forminp" id="<?php echo esc_attr($field_key); ?>">
-                <table class="widefat wc_input_table sortable" cellspacing="0" style="width: 600px;">
-                    <thead>
-                        <tr>
-                            <th class="sort">&nbsp;</th>
-                            <th><?php esc_html_e('Period Type (Y/M/D)', 'woocommerce-omnipay'); ?></th>
-                            <th><?php esc_html_e('Frequency', 'woocommerce-omnipay'); ?></th>
-                            <th><?php esc_html_e('Execute Times', 'woocommerce-omnipay'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody class="accounts">
-                        <?php
-                        $i = -1;
-        if (! empty($this->dca_periods) && is_array($this->dca_periods)) {
-            foreach ($this->dca_periods as $period) {
-                $i++;
-                echo '<tr class="account">
-                                    <td class="sort"></td>
-                                    <td><input type="text" value="'.esc_attr($period['periodType']).'" name="dca_periodType['.$i.']" maxlength="1" required /></td>
-                                    <td><input type="number" value="'.esc_attr($period['frequency']).'" name="dca_frequency['.$i.']" min="1" max="365" required /></td>
-                                    <td><input type="number" value="'.esc_attr($period['execTimes']).'" name="dca_execTimes['.$i.']" min="2" max="999" required /></td>
-                                </tr>';
-            }
-        } else {
-            // Default periods
-            echo '<tr class="account">
-                                <td class="sort"></td>
-                                <td><input type="text" value="M" name="dca_periodType[0]" maxlength="1" required /></td>
-                                <td><input type="number" value="1" name="dca_frequency[0]" min="1" max="365" required /></td>
-                                <td><input type="number" value="12" name="dca_execTimes[0]" min="2" max="999" required /></td>
-                            </tr>';
-        }
-        ?>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="4">
-                                <a href="#" class="add button"><?php esc_html_e('Add Period', 'woocommerce-omnipay'); ?></a>
-                                <a href="#" class="remove_rows button"><?php esc_html_e('Remove Selected', 'woocommerce-omnipay'); ?></a>
-                            </th>
-                        </tr>
-                    </tfoot>
-                </table>
-                <script type="text/javascript">
-                    jQuery(function($) {
-                        $('#<?php echo esc_js($field_key); ?>').on('click', '.add', function(e) {
-                            e.preventDefault();
-                            var size = $('#<?php echo esc_js($field_key); ?> tbody .account').length;
-                            $('<tr class="account">\
-                                <td class="sort"></td>\
-                                <td><input type="text" value="M" name="dca_periodType[' + size + ']" maxlength="1" required /></td>\
-                                <td><input type="number" value="1" name="dca_frequency[' + size + ']" min="1" max="365" required /></td>\
-                                <td><input type="number" value="12" name="dca_execTimes[' + size + ']" min="2" max="999" required /></td>\
-                            </tr>').appendTo('#<?php echo esc_js($field_key); ?> table tbody');
-                        });
-
-                        $('#<?php echo esc_js($field_key); ?>').on('click', '.remove_rows', function(e) {
-                            e.preventDefault();
-                            $('#<?php echo esc_js($field_key); ?> tbody tr').remove();
-                        });
-                    });
-                </script>
-            </td>
-        </tr>
-        <?php
-        return ob_get_clean();
+        return woocommerce_omnipay_get_template('admin/dca-periods-table.php', [
+            'field_key' => $this->get_field_key($key),
+            'data' => $data,
+            'periods' => $this->dca_periods,
+        ]);
     }
 
     /**
@@ -276,32 +203,11 @@ class ECPayDCAGateway extends ECPayGateway
         if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
             $total = WC()->cart ? WC()->cart->total : 0;
 
-            $periodTypeLabels = [
-                'Y' => ' '.__('year', 'woocommerce-omnipay'),
-                'M' => ' '.__('month', 'woocommerce-omnipay'),
-                'D' => ' '.__('day', 'woocommerce-omnipay'),
-            ];
-
-            echo '<select id="omnipay_dca_period" name="omnipay_dca_period">';
-
-            foreach ($this->dca_periods as $period) {
-                $value = $period['periodType'].'_'.$period['frequency'].'_'.$period['execTimes'];
-                $label = sprintf(
-                    __('NT$ %d / %s %s, up to a maximum of %s', 'woocommerce-omnipay'),
-                    $total,
-                    $period['frequency'],
-                    $periodTypeLabels[$period['periodType']] ?? $period['periodType'],
-                    $period['execTimes']
-                );
-                echo '<option value="'.esc_attr($value).'">'.esc_html($label).'</option>';
-            }
-
-            echo '</select>';
-            echo '<div id="omnipay_dca_show"></div>';
-            echo '<hr style="margin: 12px 0px;background-color: #eeeeee;">';
-            echo '<p style="font-size: 0.8em;color: #c9302c;">';
-            echo __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay');
-            echo '</p>';
+            echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
+                'periods' => $this->dca_periods,
+                'total' => $total,
+                'warning_message' => __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
+            ]);
         }
     }
 

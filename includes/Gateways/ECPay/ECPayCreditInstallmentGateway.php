@@ -92,7 +92,6 @@ class ECPayCreditInstallmentGateway extends ECPayGateway
     public function payment_fields()
     {
         parent::payment_fields();
-        $total = $this->get_order_total();
 
         $installments = $this->get_option('installments', ['3', '6', '12', '18', '24']);
 
@@ -101,21 +100,11 @@ class ECPayCreditInstallmentGateway extends ECPayGateway
             $installments = ['3', '6', '12', '18', '24'];
         }
 
-        echo '<p>'._x('Number of periods', 'Checkout info', 'woocommerce-omnipay');
-        echo '<select name="omnipay_installment">';
-
-        foreach ($installments as $period) {
-            // 圓夢分期有2W的限制
-            if ($period == '30N') {
-                if ($total >= 20000) {
-                    echo '<option value="'.esc_attr($period).'">'.wp_kses_post($period).'</option>';
-                }
-            } else {
-                echo '<option value="'.esc_attr($period).'">'.wp_kses_post($period).'</option>';
-            }
-        }
-        echo '</select>';
-        echo '</p>';
+        echo woocommerce_omnipay_get_template('checkout/installment-form.php', [
+            'installments' => $installments,
+            'total' => $this->get_order_total(),
+            'has_30n_validation' => true,
+        ]);
     }
 
     /**

@@ -100,15 +100,11 @@ class NewebPayCreditInstallmentGateway extends NewebPayGateway
             $installments = ['3', '6', '12', '18', '24'];
         }
 
-        echo '<p>'._x('Number of periods', 'Checkout info', 'woocommerce-omnipay');
-        echo '<select name="omnipay_installment">';
-
-        foreach ($installments as $period) {
-            echo '<option value="'.esc_attr($period).'">'.wp_kses_post($period).'</option>';
-        }
-
-        echo '</select>';
-        echo '</p>';
+        echo woocommerce_omnipay_get_template('checkout/installment-form.php', [
+            'installments' => $installments,
+            'total' => $this->get_order_total(),
+            'has_30n_validation' => false,
+        ]);
     }
 
     /**
