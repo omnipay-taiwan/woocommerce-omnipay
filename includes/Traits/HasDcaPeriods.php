@@ -80,13 +80,23 @@ trait HasDcaPeriods
     }
 
     /**
+     * Extract provider name from gateway ID
+     *
+     * @return string Provider name (e.g., 'ecpay', 'newebpay')
+     */
+    protected function getProviderName(): string
+    {
+        $provider = str_replace('omnipay_', '', $this->id);
+
+        return explode('_dca', $provider)[0];
+    }
+
+    /**
      * 生成 DCA 設定表格 HTML
      */
     public function generate_periods_html($key, $data)
     {
-        // Extract provider from gateway ID (e.g., omnipay_ecpay_dca -> ecpay)
-        $provider = str_replace('omnipay_', '', $this->id);
-        $provider = explode('_dca', $provider)[0];
+        $provider = $this->getProviderName();
         $templatePath = "admin/{$provider}-dca-periods-table.php";
 
         return woocommerce_omnipay_get_template($templatePath, [
@@ -156,10 +166,7 @@ trait HasDcaPeriods
         // Blocks 版本不需要顯示（直接使用設定的方案）
         if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
             $total = WC()->cart ? WC()->cart->total : 0;
-
-            // Extract provider from gateway ID (e.g., omnipay_ecpay_dca -> ecpay)
-            $provider = str_replace('omnipay_', '', $this->id);
-            $provider = explode('_dca', $provider)[0];
+            $provider = $this->getProviderName();
             $templatePath = "checkout/{$provider}-dca-form.php";
 
             echo woocommerce_omnipay_get_template($templatePath, [
