@@ -18,6 +18,11 @@ use WooCommerceOmnipay\Gateways\YiPay\YiPayATMGateway;
 use WooCommerceOmnipay\Gateways\YiPay\YiPayCreditGateway;
 use WooCommerceOmnipay\Gateways\YiPay\YiPayCVSGateway;
 
+// Icon URLs
+$ecpayIcon = plugins_url('assets/images/payment-icons/ecpay.png', dirname(__DIR__).'/woocommerce-omnipay.php');
+$newebpayIcon = plugins_url('assets/images/payment-icons/newebpay.png', dirname(__DIR__).'/woocommerce-omnipay.php');
+$yipayIcon = plugins_url('assets/images/payment-icons/yipay-color.png', dirname(__DIR__).'/woocommerce-omnipay.php');
+
 return [
     // 銀行轉帳
     [
@@ -39,7 +44,7 @@ return [
         'gateway_id' => 'ecpay',
         'title' => '綠界金流',
         'description' => '使用綠界金流付款',
-        'icon' => plugins_url('assets/images/payment-icons/ecpay.png', dirname(__DIR__).'/woocommerce-omnipay.php'),
+        'icon' => $ecpayIcon,
     ],
     // ECPay 子 Gateway
     [
@@ -48,6 +53,7 @@ return [
         'class' => ECPayCreditGateway::class,
         'title' => '綠界信用卡',
         'description' => '使用信用卡付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -55,6 +61,7 @@ return [
         'class' => ECPayCreditInstallmentGateway::class,
         'title' => '綠界信用卡分期',
         'description' => '使用信用卡分期付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -62,6 +69,7 @@ return [
         'class' => ECPayDCAGateway::class,
         'title' => '綠界定期定額',
         'description' => '使用信用卡定期定額付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -69,6 +77,7 @@ return [
         'class' => ECPayWebATMGateway::class,
         'title' => '綠界網路 ATM',
         'description' => '使用網路 ATM 付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -76,6 +85,7 @@ return [
         'class' => ECPayATMGateway::class,
         'title' => '綠界 ATM',
         'description' => '使用 ATM 虛擬帳號付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -83,6 +93,7 @@ return [
         'class' => ECPayCVSGateway::class,
         'title' => '綠界超商代碼',
         'description' => '使用超商代碼付款',
+        'icon' => $ecpayIcon,
     ],
     [
         'gateway' => 'ECPay',
@@ -90,6 +101,7 @@ return [
         'class' => ECPayBarcodeGateway::class,
         'title' => '綠界超商條碼',
         'description' => '使用超商條碼付款',
+        'icon' => $ecpayIcon,
     ],
     // NewebPay（全功能）
     [
@@ -97,7 +109,7 @@ return [
         'gateway_id' => 'newebpay',
         'title' => '藍新金流',
         'description' => '使用藍新金流付款',
-        'icon' => plugins_url('assets/images/payment-icons/newebpay.png', dirname(__DIR__).'/woocommerce-omnipay.php'),
+        'icon' => $newebpayIcon,
     ],
     // NewebPay 子 Gateway
     [
@@ -106,6 +118,7 @@ return [
         'class' => NewebPayCreditGateway::class,
         'title' => '藍新信用卡',
         'description' => '使用信用卡付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -113,6 +126,7 @@ return [
         'class' => NewebPayCreditInstallmentGateway::class,
         'title' => '藍新信用卡分期',
         'description' => '使用信用卡分期付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -120,6 +134,7 @@ return [
         'class' => NewebPayDCAGateway::class,
         'title' => '藍新定期定額',
         'description' => '使用信用卡定期定額付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -127,6 +142,7 @@ return [
         'class' => NewebPayWebATMGateway::class,
         'title' => '藍新網路 ATM',
         'description' => '使用網路 ATM 付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -134,6 +150,7 @@ return [
         'class' => NewebPayATMGateway::class,
         'title' => '藍新 ATM',
         'description' => '使用 ATM 虛擬帳號付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -141,6 +158,7 @@ return [
         'class' => NewebPayCVSGateway::class,
         'title' => '藍新超商代碼',
         'description' => '使用超商代碼付款',
+        'icon' => $newebpayIcon,
     ],
     [
         'gateway' => 'NewebPay',
@@ -148,6 +166,7 @@ return [
         'class' => NewebPayBarcodeGateway::class,
         'title' => '藍新超商條碼',
         'description' => '使用超商條碼付款',
+        'icon' => $newebpayIcon,
     ],
     // YiPay（全功能）
     [
@@ -155,7 +174,7 @@ return [
         'gateway_id' => 'yipay',
         'title' => 'YiPay 乙禾金流',
         'description' => '使用 YiPay 乙禾金流付款',
-        'icon' => plugins_url('assets/images/payment-icons/yipay-color.png', dirname(__DIR__).'/woocommerce-omnipay.php'),
+        'icon' => $yipayIcon,
     ],
     // YiPay 子 Gateway
     [
@@ -164,6 +183,7 @@ return [
         'class' => YiPayCreditGateway::class,
         'title' => '乙禾信用卡',
         'description' => '使用信用卡付款',
+        'icon' => $yipayIcon,
     ],
     [
         'gateway' => 'YiPay',
@@ -171,6 +191,7 @@ return [
         'class' => YiPayATMGateway::class,
         'title' => '乙禾 ATM',
         'description' => '使用 ATM 虛擬帳號付款',
+        'icon' => $yipayIcon,
     ],
     [
         'gateway' => 'YiPay',
@@ -178,5 +199,6 @@ return [
         'class' => YiPayCVSGateway::class,
         'title' => '乙禾超商代碼',
         'description' => '使用超商代碼付款',
+        'icon' => $yipayIcon,
     ],
 ];
