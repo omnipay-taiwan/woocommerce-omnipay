@@ -21,20 +21,6 @@ class YiPayCVSGateway extends YiPayGateway
     protected $paymentType = '3';
 
     /**
-     * Constructor
-     *
-     * @param  array  $config  Gateway 配置
-     */
-    public function __construct(array $config)
-    {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'yipay_cvs';
-        $config['title'] = $config['title'] ?? '乙禾超商代碼';
-        $config['description'] = $config['description'] ?? '使用超商代碼付款';
-
-        parent::__construct($config);
-    }
-
-    /**
      * 初始化表單欄位
      */
     public function init_form_fields()

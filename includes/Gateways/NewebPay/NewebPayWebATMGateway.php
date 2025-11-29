@@ -20,20 +20,6 @@ class NewebPayWebATMGateway extends NewebPayGateway
     protected $paymentType = 'WEBATM';
 
     /**
-     * Constructor
-     *
-     * @param  array  $config  Gateway 配置
-     */
-    public function __construct(array $config)
-    {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'newebpay_webatm';
-        $config['title'] = $config['title'] ?? '藍新網路 ATM';
-        $config['description'] = $config['description'] ?? '使用網路 ATM 付款';
-
-        parent::__construct($config);
-    }
-
-    /**
      * 初始化表單欄位
      */
     public function init_form_fields()

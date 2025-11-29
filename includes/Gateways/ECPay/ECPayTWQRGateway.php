@@ -20,20 +20,6 @@ class ECPayTWQRGateway extends ECPayGateway
     protected $paymentType = 'TWQR';
 
     /**
-     * Constructor
-     *
-     * @param  array  $config  Gateway 配置
-     */
-    public function __construct(array $config)
-    {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_twqr';
-        $config['title'] = $config['title'] ?? __('ECPay Taiwan Pay', 'woocommerce-omnipay');
-        $config['description'] = $config['description'] ?? __('Pay with Taiwan Pay (TWQR)', 'woocommerce-omnipay');
-
-        parent::__construct($config);
-    }
-
-    /**
      * 初始化表單欄位
      */
     public function init_form_fields()

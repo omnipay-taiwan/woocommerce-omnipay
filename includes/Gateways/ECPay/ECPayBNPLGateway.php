@@ -21,20 +21,6 @@ class ECPayBNPLGateway extends ECPayGateway
     protected $paymentType = 'BNPL';
 
     /**
-     * Constructor
-     *
-     * @param  array  $config  Gateway 配置
-     */
-    public function __construct(array $config)
-    {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_bnpl';
-        $config['title'] = $config['title'] ?? __('ECPay BNPL', 'woocommerce-omnipay');
-        $config['description'] = $config['description'] ?? __('Pay with BNPL (Buy Now Pay Later)', 'woocommerce-omnipay');
-
-        parent::__construct($config);
-    }
-
-    /**
      * 初始化表單欄位
      */
     public function init_form_fields()

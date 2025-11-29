@@ -26,10 +26,6 @@ class ECPayDCAGateway extends ECPayGateway
      */
     public function __construct(array $config)
     {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'ecpay_dca';
-        $config['title'] = $config['title'] ?? __('ECPay Recurring Payment', 'woocommerce-omnipay');
-        $config['description'] = $config['description'] ?? __('Pay with credit card recurring payment', 'woocommerce-omnipay');
-
         parent::__construct($config);
 
         // Load DCA periods from option

@@ -26,10 +26,6 @@ class NewebPayDCAGateway extends NewebPayGateway
      */
     public function __construct(array $config)
     {
-        $config['gateway_id'] = $config['gateway_id'] ?? 'newebpay_dca';
-        $config['title'] = $config['title'] ?? __('NewebPay Recurring Payment', 'woocommerce-omnipay');
-        $config['description'] = $config['description'] ?? __('Pay with credit card recurring payment', 'woocommerce-omnipay');
-
         parent::__construct($config);
 
         // Load DCA periods from option
