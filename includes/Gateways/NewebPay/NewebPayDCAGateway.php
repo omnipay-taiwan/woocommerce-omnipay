@@ -178,7 +178,14 @@ class NewebPayDCAGateway extends NewebPayGateway
                 ],
             ],
             'field_prefix' => 'newebpay_dca_',
-            'default_period' => ['periodType' => 'M', 'periodPoint' => '', 'periodTimes' => 12, 'periodStartType' => 2],
+            'default_period' => [
+                'periodType' => 'M',
+                'periodPoint' => '',
+                'periodTimes' => 12,
+                'periodStartType' => 2,
+                'frequency' => 1,
+                'execTimes' => 12,
+            ],
             'table_width' => 700,
         ]);
     }
@@ -214,11 +221,15 @@ class NewebPayDCAGateway extends NewebPayGateway
 
             foreach ($periodTypes as $i => $periodType) {
                 if (! empty($periodType)) {
+                    $times = $periodTimes[$i] ?? 0;
                     $dca_periods[] = [
                         'periodType' => $periodType,
                         'periodPoint' => $periodPoints[$i] ?? '',
-                        'periodTimes' => $periodTimes[$i] ?? 0,
+                        'periodTimes' => $times,
                         'periodStartType' => $periodStartTypes[$i] ?? 0,
+                        // Add unified fields for template display
+                        'frequency' => 1,
+                        'execTimes' => $times,
                     ];
                 }
             }
