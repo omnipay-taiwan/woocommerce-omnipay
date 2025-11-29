@@ -196,7 +196,7 @@ class ECPayDCAGateway extends ECPayGateway
     {
         return sprintf(
             __('You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
-            'ECPay'
+            __('ECPay', 'woocommerce-omnipay')
         );
     }
 

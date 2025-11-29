@@ -202,7 +202,7 @@ class NewebPayDCAGateway extends NewebPayGateway
     {
         return sprintf(
             __('You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
-            'NewebPay'
+            __('NewebPay', 'woocommerce-omnipay')
         );
     }
 
