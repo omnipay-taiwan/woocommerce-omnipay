@@ -37,7 +37,15 @@ class NewebPayDCAGateway extends NewebPayGateway
         parent::__construct($config);
 
         // Load DCA periods from option
-        $this->dca_periods = get_option('woocommerce_omnipay_newebpay_dca_periods', []);
+        $this->dca_periods = get_option($this->getDcaPeriodsOptionName(), []);
+    }
+
+    /**
+     * Get DCA periods option name
+     */
+    protected function getDcaPeriodsOptionName(): string
+    {
+        return 'woocommerce_omnipay_newebpay_dca_periods';
     }
 
     /**
@@ -133,88 +141,46 @@ class NewebPayDCAGateway extends NewebPayGateway
      */
     public function generate_dca_periods_newebpay_html($key, $data)
     {
-        $field_key = $this->get_field_key($key);
-        $defaults = [
-            'title' => '',
-            'class' => '',
-        ];
-
-        $data = wp_parse_args($data, $defaults);
-
-        ob_start();
-        ?>
-        <tr valign="top">
-            <th scope="row" class="titledesc"><?php echo wp_kses_post($data['title']); ?></th>
-            <td class="forminp" id="<?php echo esc_attr($field_key); ?>">
-                <table class="widefat wc_input_table sortable" cellspacing="0" style="width: 700px;">
-                    <thead>
-                        <tr>
-                            <th class="sort">&nbsp;</th>
-                            <th><?php esc_html_e('Period Type (Y/M/W/D)', 'woocommerce-omnipay'); ?></th>
-                            <th><?php esc_html_e('Period Point', 'woocommerce-omnipay'); ?></th>
-                            <th><?php esc_html_e('Period Times', 'woocommerce-omnipay'); ?></th>
-                            <th><?php esc_html_e('Start Type (1/2/3)', 'woocommerce-omnipay'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody class="accounts">
-                        <?php
-                        $i = -1;
-        if (! empty($this->dca_periods) && is_array($this->dca_periods)) {
-            foreach ($this->dca_periods as $period) {
-                $i++;
-                echo '<tr class="account">
-                                    <td class="sort"></td>
-                                    <td><input type="text" value="'.esc_attr($period['periodType']).'" name="newebpay_dca_periodType['.$i.']" maxlength="1" required /></td>
-                                    <td><input type="text" value="'.esc_attr($period['periodPoint']).'" name="newebpay_dca_periodPoint['.$i.']" /></td>
-                                    <td><input type="number" value="'.esc_attr($period['periodTimes']).'" name="newebpay_dca_periodTimes['.$i.']" min="1" required /></td>
-                                    <td><input type="number" value="'.esc_attr($period['periodStartType']).'" name="newebpay_dca_periodStartType['.$i.']" min="1" max="3" required /></td>
-                                </tr>';
-            }
-        } else {
-            // Default period
-            echo '<tr class="account">
-                                <td class="sort"></td>
-                                <td><input type="text" value="M" name="newebpay_dca_periodType[0]" maxlength="1" required /></td>
-                                <td><input type="text" value="" name="newebpay_dca_periodPoint[0]" /></td>
-                                <td><input type="number" value="12" name="newebpay_dca_periodTimes[0]" min="1" required /></td>
-                                <td><input type="number" value="2" name="newebpay_dca_periodStartType[0]" min="1" max="3" required /></td>
-                            </tr>';
-        }
-        ?>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="5">
-                                <a href="#" class="add button"><?php esc_html_e('Add Period', 'woocommerce-omnipay'); ?></a>
-                                <a href="#" class="remove_rows button"><?php esc_html_e('Remove Selected', 'woocommerce-omnipay'); ?></a>
-                            </th>
-                        </tr>
-                    </tfoot>
-                </table>
-                <script type="text/javascript">
-                    jQuery(function($) {
-                        $('#<?php echo esc_js($field_key); ?>').on('click', '.add', function(e) {
-                            e.preventDefault();
-                            var size = $('#<?php echo esc_js($field_key); ?> tbody .account').length;
-                            $('<tr class="account">\
-                                <td class="sort"></td>\
-                                <td><input type="text" value="M" name="newebpay_dca_periodType[' + size + ']" maxlength="1" required /></td>\
-                                <td><input type="text" value="" name="newebpay_dca_periodPoint[' + size + ']" /></td>\
-                                <td><input type="number" value="12" name="newebpay_dca_periodTimes[' + size + ']" min="1" required /></td>\
-                                <td><input type="number" value="2" name="newebpay_dca_periodStartType[' + size + ']" min="1" max="3" required /></td>\
-                            </tr>').appendTo('#<?php echo esc_js($field_key); ?> table tbody');
-                        });
-
-                        $('#<?php echo esc_js($field_key); ?>').on('click', '.remove_rows', function(e) {
-                            e.preventDefault();
-                            $('#<?php echo esc_js($field_key); ?> tbody tr').remove();
-                        });
-                    });
-                </script>
-            </td>
-        </tr>
-        <?php
-        return ob_get_clean();
+        return woocommerce_omnipay_get_template('admin/dca-periods-table.php', [
+            'field_key' => $this->get_field_key($key),
+            'data' => $data,
+            'periods' => $this->dca_periods,
+            'headers' => [
+                __('Period Type (Y/M/W/D)', 'woocommerce-omnipay'),
+                __('Period Point', 'woocommerce-omnipay'),
+                __('Period Times', 'woocommerce-omnipay'),
+                __('Start Type (1/2/3)', 'woocommerce-omnipay'),
+            ],
+            'field_configs' => [
+                [
+                    'name' => 'periodType',
+                    'type' => 'text',
+                    'default' => 'M',
+                    'attributes' => ['maxlength' => '1', 'required' => 'required'],
+                ],
+                [
+                    'name' => 'periodPoint',
+                    'type' => 'text',
+                    'default' => '',
+                    'attributes' => [],
+                ],
+                [
+                    'name' => 'periodTimes',
+                    'type' => 'number',
+                    'default' => 12,
+                    'attributes' => ['min' => '1', 'required' => 'required'],
+                ],
+                [
+                    'name' => 'periodStartType',
+                    'type' => 'number',
+                    'default' => 2,
+                    'attributes' => ['min' => '1', 'max' => '3', 'required' => 'required'],
+                ],
+            ],
+            'field_prefix' => 'newebpay_dca_',
+            'default_period' => ['periodType' => 'M', 'periodPoint' => '', 'periodTimes' => 12, 'periodStartType' => 2],
+            'table_width' => 700,
+        ]);
     }
 
     /**
@@ -223,6 +189,16 @@ class NewebPayDCAGateway extends NewebPayGateway
     public function process_admin_options()
     {
         // Save DCA periods
+        $this->saveDcaPeriods();
+
+        return parent::process_admin_options();
+    }
+
+    /**
+     * Save DCA periods from POST data
+     */
+    protected function saveDcaPeriods()
+    {
         $dca_periods = [];
         if (isset($_POST['newebpay_dca_periodType']) && is_array($_POST['newebpay_dca_periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['newebpay_dca_periodType']);
@@ -247,9 +223,7 @@ class NewebPayDCAGateway extends NewebPayGateway
                 }
             }
         }
-        update_option('woocommerce_omnipay_newebpay_dca_periods', $dca_periods);
-
-        return parent::process_admin_options();
+        update_option($this->getDcaPeriodsOptionName(), $dca_periods);
     }
 
     /**
@@ -291,27 +265,18 @@ class NewebPayDCAGateway extends NewebPayGateway
         if (is_checkout() && ! is_wc_endpoint_url('order-pay')) {
             $total = WC()->cart ? WC()->cart->total : 0;
 
-            $periodTypeLabels = [
-                'Y' => __('year', 'woocommerce-omnipay'),
-                'M' => __('month', 'woocommerce-omnipay'),
-                'W' => __('week', 'woocommerce-omnipay'),
-                'D' => __('day', 'woocommerce-omnipay'),
-            ];
-
-            echo '<p><select id="omnipay_dca_period" name="omnipay_dca_period">';
-
-            foreach ($this->dca_periods as $period) {
-                $value = $period['periodType'].'_'.$period['periodPoint'].'_'.$period['periodTimes'].'_'.$period['periodStartType'];
-                $label = sprintf(
-                    __('%s / %s, up to a maximum of %s', 'woocommerce-omnipay'),
-                    wc_price($total),
-                    $periodTypeLabels[$period['periodType']] ?? $period['periodType'],
-                    $period['periodTimes']
-                );
-                echo '<option value="'.esc_attr($value).'">'.esc_html($label).'</option>';
-            }
-
-            echo '</select></p>';
+            echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
+                'periods' => $this->dca_periods,
+                'total' => $total,
+                'period_type_labels' => [
+                    'Y' => __('year', 'woocommerce-omnipay'),
+                    'M' => __('month', 'woocommerce-omnipay'),
+                    'W' => __('week', 'woocommerce-omnipay'),
+                    'D' => __('day', 'woocommerce-omnipay'),
+                ],
+                'period_fields' => ['periodType', 'periodPoint', 'periodTimes', 'periodStartType'],
+                'warning_message' => __('You will use <strong>NewebPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
+            ]);
         }
     }
 
@@ -326,41 +291,66 @@ class NewebPayDCAGateway extends NewebPayGateway
         $data = parent::preparePaymentData($order);
         $data['CREDIT'] = '1';
 
-        if (! isset($_POST['omnipay_dca_period'])) {
-            // Blocks 模式：從設定讀取單一方案
-            $data['PeriodType'] = $this->get_option('dca_periodType', 'M');
-            $data['PeriodPoint'] = $this->get_option('dca_periodPoint', '');
-            $data['PeriodTimes'] = (int) $this->get_option('dca_periodTimes', 12);
-            $data['PeriodStartType'] = (int) $this->get_option('dca_periodStartType', 2);
-        } else {
-            // Shortcode 模式：從 POST 讀取用戶選擇
-            $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
-            $parts = explode('_', $selectedPeriod);
-            if (count($parts) === 4) {
-                [$periodType, $periodPoint, $periodTimes, $periodStartType] = $parts;
-                $data['PeriodType'] = $periodType;
-                $data['PeriodPoint'] = $periodPoint;
-                $data['PeriodTimes'] = (int) $periodTimes;
-                $data['PeriodStartType'] = (int) $periodStartType;
-            } else {
-                // Fallback to default values if format is invalid
-                $data['PeriodType'] = 'M';
-                $data['PeriodPoint'] = '';
-                $data['PeriodTimes'] = 12;
-                $data['PeriodStartType'] = 2;
-            }
-        }
+        // Get DCA settings based on mode
+        $dcaData = $this->isBlocksMode()
+            ? $this->getBlocksModeDcaData()
+            : $this->getShortcodeModeDcaData();
 
+        $data = array_merge($data, $dcaData);
         $data['PeriodAmt'] = (int) $order->get_total();
 
-        // PayerEmail 是定期定額的必填欄位
-        $payerEmail = $order->get_billing_email();
-        if (empty($payerEmail)) {
-            // 如果訂單沒有 email，使用客戶 email 或網站管理員 email
-            $payerEmail = $order->get_billing_email() ?: get_bloginfo('admin_email');
-        }
-        $data['PayerEmail'] = $payerEmail;
+        // PayerEmail is required for recurring payment
+        $data['PayerEmail'] = $order->get_billing_email() ?: get_bloginfo('admin_email');
 
         return $data;
+    }
+
+    /**
+     * Check if current checkout is using Blocks mode
+     */
+    protected function isBlocksMode(): bool
+    {
+        return ! isset($_POST['omnipay_dca_period']);
+    }
+
+    /**
+     * Get DCA data for Blocks mode
+     */
+    protected function getBlocksModeDcaData(): array
+    {
+        return [
+            'PeriodType' => $this->get_option('dca_periodType', 'M'),
+            'PeriodPoint' => $this->get_option('dca_periodPoint', ''),
+            'PeriodTimes' => (int) $this->get_option('dca_periodTimes', 12),
+            'PeriodStartType' => (int) $this->get_option('dca_periodStartType', 2),
+        ];
+    }
+
+    /**
+     * Get DCA data for Shortcode mode
+     */
+    protected function getShortcodeModeDcaData(): array
+    {
+        $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
+        $parts = explode('_', $selectedPeriod);
+
+        if (count($parts) === 4) {
+            [$periodType, $periodPoint, $periodTimes, $periodStartType] = $parts;
+
+            return [
+                'PeriodType' => $periodType,
+                'PeriodPoint' => $periodPoint,
+                'PeriodTimes' => (int) $periodTimes,
+                'PeriodStartType' => (int) $periodStartType,
+            ];
+        }
+
+        // Fallback to default values if format is invalid
+        return [
+            'PeriodType' => 'M',
+            'PeriodPoint' => '',
+            'PeriodTimes' => 12,
+            'PeriodStartType' => 2,
+        ];
     }
 }

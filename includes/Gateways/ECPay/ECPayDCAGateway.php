@@ -37,7 +37,7 @@ class ECPayDCAGateway extends ECPayGateway
         parent::__construct($config);
 
         // Load DCA periods from option
-        $this->dca_periods = get_option('woocommerce_omnipay_ecpay_dca_periods', []);
+        $this->dca_periods = get_option($this->getDcaPeriodsOptionName(), []);
     }
 
     /**
@@ -128,6 +128,34 @@ class ECPayDCAGateway extends ECPayGateway
             'field_key' => $this->get_field_key($key),
             'data' => $data,
             'periods' => $this->dca_periods,
+            'headers' => [
+                __('Period Type (Y/M/D)', 'woocommerce-omnipay'),
+                __('Frequency', 'woocommerce-omnipay'),
+                __('Execute Times', 'woocommerce-omnipay'),
+            ],
+            'field_configs' => [
+                [
+                    'name' => 'periodType',
+                    'type' => 'text',
+                    'default' => 'M',
+                    'attributes' => ['maxlength' => '1', 'required' => 'required'],
+                ],
+                [
+                    'name' => 'frequency',
+                    'type' => 'number',
+                    'default' => 1,
+                    'attributes' => ['min' => '1', 'max' => '365', 'required' => 'required'],
+                ],
+                [
+                    'name' => 'execTimes',
+                    'type' => 'number',
+                    'default' => 12,
+                    'attributes' => ['min' => '1', 'max' => '999', 'required' => 'required'],
+                ],
+            ],
+            'field_prefix' => 'dca_',
+            'default_period' => ['periodType' => 'M', 'frequency' => 1, 'execTimes' => 12],
+            'table_width' => 600,
         ]);
     }
 
@@ -142,6 +170,16 @@ class ECPayDCAGateway extends ECPayGateway
         }
 
         // Save DCA periods
+        $this->saveDcaPeriods();
+
+        return parent::process_admin_options();
+    }
+
+    /**
+     * Save DCA periods from POST data
+     */
+    protected function saveDcaPeriods()
+    {
         $dca_periods = [];
         if (isset($_POST['dca_periodType'])) {
             $periodTypes = array_map('sanitize_text_field', $_POST['dca_periodType']);
@@ -158,9 +196,15 @@ class ECPayDCAGateway extends ECPayGateway
                 }
             }
         }
-        update_option('woocommerce_omnipay_ecpay_dca_periods', $dca_periods);
+        update_option($this->getDcaPeriodsOptionName(), $dca_periods);
+    }
 
-        return parent::process_admin_options();
+    /**
+     * Get DCA periods option name
+     */
+    protected function getDcaPeriodsOptionName(): string
+    {
+        return 'woocommerce_omnipay_ecpay_dca_periods';
     }
 
     /**
@@ -303,6 +347,12 @@ class ECPayDCAGateway extends ECPayGateway
             echo woocommerce_omnipay_get_template('checkout/dca-form.php', [
                 'periods' => $this->dca_periods,
                 'total' => $total,
+                'period_type_labels' => [
+                    'Y' => __('year', 'woocommerce-omnipay'),
+                    'M' => __('month', 'woocommerce-omnipay'),
+                    'D' => __('day', 'woocommerce-omnipay'),
+                ],
+                'period_fields' => ['periodType', 'frequency', 'execTimes'],
                 'warning_message' => __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
             ]);
         }
@@ -319,30 +369,60 @@ class ECPayDCAGateway extends ECPayGateway
         $data = parent::preparePaymentData($order);
         $data['ChoosePayment'] = $this->paymentType;
 
-        if (! isset($_POST['omnipay_dca_period'])) {
-            // Blocks 模式：從設定讀取單一方案
-            $data['PeriodType'] = $this->get_option('dca_periodType', 'M');
-            $data['Frequency'] = (int) $this->get_option('dca_frequency', 1);
-            $data['ExecTimes'] = (int) $this->get_option('dca_execTimes', 2);
-        } else {
-            // Shortcode 模式：從 POST 讀取用戶選擇
-            $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
-            $parts = explode('_', $selectedPeriod);
-            if (count($parts) === 3) {
-                [$periodType, $frequency, $execTimes] = $parts;
-                $data['PeriodType'] = $periodType;
-                $data['Frequency'] = (int) $frequency;
-                $data['ExecTimes'] = (int) $execTimes;
-            } else {
-                // Fallback to default values if format is invalid
-                $data['PeriodType'] = 'M';
-                $data['Frequency'] = 1;
-                $data['ExecTimes'] = 2;
-            }
-        }
+        // Get DCA settings based on mode
+        $dcaData = $this->isBlocksMode()
+            ? $this->getBlocksModeDcaData()
+            : $this->getShortcodeModeDcaData();
 
+        $data = array_merge($data, $dcaData);
         $data['PeriodAmount'] = (int) $order->get_total();
 
         return $data;
+    }
+
+    /**
+     * Check if current checkout is using Blocks mode
+     */
+    protected function isBlocksMode(): bool
+    {
+        return ! isset($_POST['omnipay_dca_period']);
+    }
+
+    /**
+     * Get DCA data for Blocks mode
+     */
+    protected function getBlocksModeDcaData(): array
+    {
+        return [
+            'PeriodType' => $this->get_option('dca_periodType', 'M'),
+            'Frequency' => (int) $this->get_option('dca_frequency', 1),
+            'ExecTimes' => (int) $this->get_option('dca_execTimes', 2),
+        ];
+    }
+
+    /**
+     * Get DCA data for Shortcode mode
+     */
+    protected function getShortcodeModeDcaData(): array
+    {
+        $selectedPeriod = sanitize_text_field($_POST['omnipay_dca_period']);
+        $parts = explode('_', $selectedPeriod);
+
+        if (count($parts) === 3) {
+            [$periodType, $frequency, $execTimes] = $parts;
+
+            return [
+                'PeriodType' => $periodType,
+                'Frequency' => (int) $frequency,
+                'ExecTimes' => (int) $execTimes,
+            ];
+        }
+
+        // Fallback to default values if format is invalid
+        return [
+            'PeriodType' => 'M',
+            'Frequency' => 1,
+            'ExecTimes' => 2,
+        ];
     }
 }
