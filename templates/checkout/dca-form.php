@@ -27,28 +27,18 @@ $periodTypeLabels = [
     }
     $value = implode('_', $values);
 
-    // Build label based on gateway type
-    if (isset($period['frequency']) && isset($period['execTimes'])) {
-        // ECPay format: frequency + execTimes
-        $label = sprintf(
-            __('%s / %s %s, up to a maximum of %s times', 'woocommerce-omnipay'),
-            wc_price($total),
-            esc_html($period['frequency']),
-            esc_html($periodTypeLabels[$period['periodType']] ?? $period['periodType']),
-            esc_html($period['execTimes'])
-        );
-    } elseif (isset($period['periodTimes'])) {
-        // NewebPay format: periodTimes only
-        $label = sprintf(
-            __('%s / per %s, total %s times', 'woocommerce-omnipay'),
-            wc_price($total),
-            esc_html($periodTypeLabels[$period['periodType']] ?? $period['periodType']),
-            esc_html($period['periodTimes'])
-        );
-    } else {
-        // Fallback
-        $label = wc_price($total);
-    }
+    // Normalize period for unified display
+    $frequency = $period['frequency'] ?? 1; // NewebPay doesn't have frequency, default to 1
+    $execTimes = $period['execTimes'] ?? $period['periodTimes'] ?? 0; // Use periodTimes for NewebPay
+
+    // Build label - unified format
+    $label = sprintf(
+        __('%s / %s %s, up to a maximum of %s times', 'woocommerce-omnipay'),
+        wc_price($total),
+        esc_html($frequency),
+        esc_html($periodTypeLabels[$period['periodType']] ?? $period['periodType']),
+        esc_html($execTimes)
+    );
     ?>
     <option value="<?php echo esc_attr($value); ?>"><?php echo wp_kses_post($label); ?></option>
 <?php } ?>
