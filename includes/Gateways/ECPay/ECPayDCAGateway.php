@@ -300,7 +300,7 @@ class ECPayDCAGateway extends ECPayGateway
             echo '<div id="omnipay_dca_show"></div>';
             echo '<hr style="margin: 12px 0px;background-color: #eeeeee;">';
             echo '<p style="font-size: 0.8em;color: #c9302c;">';
-            echo esc_html__('You will use ECPay recurring credit card payment. Please note that the products you purchased are non-single payment products.', 'woocommerce-omnipay');
+            echo __('You will use <strong>ECPay recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay');
             echo '</p>';
         }
     }
