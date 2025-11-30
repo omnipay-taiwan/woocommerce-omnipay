@@ -122,11 +122,8 @@ class ECPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = 2; // Invalid: must be 1
         $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = 5;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return false when validation fails
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
@@ -141,11 +138,8 @@ class ECPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = 1;
         $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = 12;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return true when validation passes
+        $result = $this->gateway->process_admin_options();
 
         $this->assertTrue($result);
 
@@ -160,11 +154,8 @@ class ECPayDCAGatewayTest extends TestCase
         $_POST['frequency'] = [1, 1];
         $_POST['execTimes'] = [12, 6];
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('saveDcaPeriods');
-        $method->setAccessible(true);
-
-        $method->invoke($this->gateway);
+        // Use public API to trigger saveDcaPeriods
+        $this->gateway->process_admin_options();
 
         $saved = get_option('woocommerce_omnipay_ecpay_dca_periods');
         $this->assertCount(2, $saved);
@@ -179,13 +170,13 @@ class ECPayDCAGatewayTest extends TestCase
 
     public function test_is_available_returns_true_when_has_valid_periods()
     {
-        // Gateway has periods set in setUp
-        $reflection = new \ReflectionClass($this->gateway);
-        $property = $reflection->getProperty('dcaPeriods');
-        $property->setAccessible(true);
-        $periods = $property->getValue($this->gateway);
+        // Verify periods were loaded by checking the HTML output contains period data
+        $html = $this->gateway->generate_periods_html('periods', []);
 
-        $this->assertNotEmpty($periods);
+        // Should contain the period data from setUp
+        $this->assertStringContainsString('value="M"', $html);
+        $this->assertStringContainsString('value="1"', $html);
+        $this->assertStringContainsString('value="12"', $html);
     }
 
     public function test_load_dca_periods_from_option()
@@ -203,13 +194,14 @@ class ECPayDCAGatewayTest extends TestCase
             'gateway_id' => 'ecpay_dca',
         ]);
 
-        $reflection = new \ReflectionClass($newGateway);
-        $property = $reflection->getProperty('dcaPeriods');
-        $property->setAccessible(true);
-        $loaded = $property->getValue($newGateway);
+        // Verify periods were loaded by testing generate_periods_html output
+        $html = $newGateway->generate_periods_html('periods', []);
 
-        $this->assertCount(2, $loaded);
-        $this->assertEquals('M', $loaded[0]['periodType']);
+        $this->assertStringContainsString('value="M"', $html);
+        $this->assertStringContainsString('value="Y"', $html);
+        $this->assertStringContainsString('value="1"', $html);
+        $this->assertStringContainsString('value="12"', $html);
+        $this->assertStringContainsString('value="6"', $html);
     }
 
     /**
@@ -221,11 +213,8 @@ class ECPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = $frequency;
         $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = $execTimes;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return false when validation fails
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
@@ -261,11 +250,8 @@ class ECPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_ecpay_dca_frequency'] = $frequency;
         $_POST['woocommerce_omnipay_ecpay_dca_execTimes'] = $execTimes;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return true when validation passes
+        $result = $this->gateway->process_admin_options();
 
         $this->assertTrue($result);
 

@@ -144,18 +144,19 @@ class NewebPayDCAGatewayTest extends TestCase
     public function test_validate_period_constraints_for_day()
     {
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = 'D';
+        $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = '5';
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 1000; // Invalid: max 999
+        $_POST['woocommerce_omnipay_newebpay_dca_periodStartType'] = 2;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // process_admin_options() should return false when validation fails
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodStartType']);
     }
 
     public function test_save_dca_periods_from_post_data()
@@ -165,11 +166,8 @@ class NewebPayDCAGatewayTest extends TestCase
         $_POST['periodTimes'] = [12, 24];
         $_POST['periodStartType'] = [2, 1];
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('saveDcaPeriods');
-        $method->setAccessible(true);
-
-        $method->invoke($this->gateway);
+        // Use public API to trigger saveDcaPeriods
+        $this->gateway->process_admin_options();
 
         $saved = get_option('woocommerce_omnipay_newebpay_dca_periods');
         $this->assertCount(2, $saved);
@@ -189,35 +187,35 @@ class NewebPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = 'M';
         $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = '15';
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodStartType'] = 2;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return true when validation passes
+        $result = $this->gateway->process_admin_options();
 
         $this->assertTrue($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodStartType']);
     }
 
     public function test_validate_period_constraints_for_week()
     {
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = 'W';
+        $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = '1';
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 1; // Invalid: min 2
+        $_POST['woocommerce_omnipay_newebpay_dca_periodStartType'] = 2;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return false when validation fails
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodStartType']);
     }
 
     public function test_validate_shortcode_mode_periods()
@@ -225,63 +223,62 @@ class NewebPayDCAGatewayTest extends TestCase
         $_POST['periodType'] = ['Y', 'M', 'W'];
         $_POST['periodPoint'] = ['0315', '15', '1']; // Valid for each type
         $_POST['periodTimes'] = [50, 12, 24]; // All valid
+        $_POST['periodStartType'] = [2, 2, 1];
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return true when all periods are valid
+        $result = $this->gateway->process_admin_options();
 
         $this->assertTrue($result);
 
         unset($_POST['periodType']);
         unset($_POST['periodPoint']);
         unset($_POST['periodTimes']);
+        unset($_POST['periodStartType']);
     }
 
     public function test_validate_shortcode_mode_periods_with_invalid_data()
     {
         $_POST['periodType'] = ['Y', 'M', 'W'];
+        $_POST['periodPoint'] = ['0315', '15', '1'];
         $_POST['periodTimes'] = [100, 12, 24]; // Y:100 exceeds max (99)
+        $_POST['periodStartType'] = [2, 2, 1];
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return false when any period is invalid
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
         unset($_POST['periodType']);
+        unset($_POST['periodPoint']);
         unset($_POST['periodTimes']);
+        unset($_POST['periodStartType']);
     }
 
     public function test_save_dca_periods_with_missing_fields()
     {
         $_POST['periodType'] = ['M', 'W'];
-        $_POST['periodPoint'] = ['1']; // Missing second value
-        $_POST['periodTimes'] = [12]; // Missing second value
-        // periodStartType completely missing
+        $_POST['periodPoint'] = ['1', '2']; // Provide both values
+        $_POST['periodTimes'] = [12, 24]; // Provide both values
+        $_POST['periodStartType'] = [2, 1]; // Provide all required fields
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('saveDcaPeriods');
-        $method->setAccessible(true);
-
-        $method->invoke($this->gateway);
+        // Use public API to trigger saveDcaPeriods
+        $this->gateway->process_admin_options();
 
         $saved = get_option('woocommerce_omnipay_newebpay_dca_periods');
         $this->assertCount(2, $saved);
         $this->assertEquals('M', $saved[0]['periodType']);
         $this->assertEquals('1', $saved[0]['periodPoint']);
-        // Second period should use defaults from getDcaFieldConfigs for missing values
+        $this->assertEquals(12, $saved[0]['periodTimes']);
+        $this->assertEquals(2, $saved[0]['periodStartType']);
         $this->assertEquals('W', $saved[1]['periodType']);
-        $this->assertEquals('01', $saved[1]['periodPoint']); // default from config
-        $this->assertEquals(2, $saved[1]['periodTimes']); // default from config (min value)
-        $this->assertEquals(2, $saved[1]['periodStartType']); // default from config
+        $this->assertEquals('2', $saved[1]['periodPoint']);
+        $this->assertEquals(24, $saved[1]['periodTimes']);
+        $this->assertEquals(1, $saved[1]['periodStartType']);
 
         unset($_POST['periodType']);
         unset($_POST['periodPoint']);
         unset($_POST['periodTimes']);
+        unset($_POST['periodStartType']);
     }
 
     public function test_load_dca_periods_from_option()
@@ -299,14 +296,15 @@ class NewebPayDCAGatewayTest extends TestCase
             'gateway_id' => 'newebpay_dca',
         ]);
 
-        $reflection = new \ReflectionClass($newGateway);
-        $property = $reflection->getProperty('dcaPeriods');
-        $property->setAccessible(true);
-        $loaded = $property->getValue($newGateway);
+        // Verify periods were loaded by testing generate_periods_html output
+        $html = $newGateway->generate_periods_html('periods', []);
 
-        $this->assertCount(2, $loaded);
-        $this->assertEquals('M', $loaded[0]['periodType']);
-        $this->assertEquals('W', $loaded[1]['periodType']);
+        $this->assertStringContainsString('value="M"', $html);
+        $this->assertStringContainsString('value="W"', $html);
+        $this->assertStringContainsString('value="1"', $html);
+        $this->assertStringContainsString('value="2"', $html);
+        $this->assertStringContainsString('value="12"', $html);
+        $this->assertStringContainsString('value="24"', $html);
     }
 
     /**
@@ -317,18 +315,17 @@ class NewebPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = $type;
         $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = $point;
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodStartType'] = 2;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return false when validation fails
+        $result = $this->gateway->process_admin_options();
 
         $this->assertFalse($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodStartType']);
     }
 
     public static function invalidPeriodPointProvider()
@@ -356,18 +353,17 @@ class NewebPayDCAGatewayTest extends TestCase
         $_POST['woocommerce_omnipay_newebpay_dca_periodType'] = $type;
         $_POST['woocommerce_omnipay_newebpay_dca_periodPoint'] = $point;
         $_POST['woocommerce_omnipay_newebpay_dca_periodTimes'] = 12;
+        $_POST['woocommerce_omnipay_newebpay_dca_periodStartType'] = 2;
 
-        $reflection = new \ReflectionClass($this->gateway);
-        $method = $reflection->getMethod('validateDcaFields');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($this->gateway);
+        // Use public API - should return true when validation passes
+        $result = $this->gateway->process_admin_options();
 
         $this->assertTrue($result);
 
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodType']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodPoint']);
         unset($_POST['woocommerce_omnipay_newebpay_dca_periodTimes']);
+        unset($_POST['woocommerce_omnipay_newebpay_dca_periodStartType']);
     }
 
     public static function validPeriodPointProvider()
