@@ -80,12 +80,52 @@ class NewebPayTest extends TestCase
         $this->assertEquals('0|Incorrect TradeSha', $output);
     }
 
+    public function test_accept_notification_failed()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'Status' => 'FAIL',
+            'Message' => '交易失敗',
+        ]));
+
+        ob_start();
+        $this->gateway->acceptNotification();
+        $output = ob_get_clean();
+
+        $this->assertEquals('0|交易失敗', $output);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('failed', $order->get_status());
+    }
+
     public static function productTypeProvider()
     {
         return [
             'physical' => [false, false, 'processing'],
             'virtual downloadable' => [true, true, 'completed'],
         ];
+    }
+
+    // ==================== completePurchase ====================
+
+    public function test_complete_purchase_failed()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'Status' => 'FAIL',
+            'Message' => '交易失敗',
+        ]));
+
+        $url = $this->gateway->completePurchase();
+
+        $this->assertStringNotContainsString('order-received', $url);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('failed', $order->get_status());
     }
 
     // ==================== Payment Info ====================

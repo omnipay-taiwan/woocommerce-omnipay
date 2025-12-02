@@ -84,7 +84,9 @@ class YiPayGateway extends OmnipayGateway
      * 將 YiPay 付款資訊欄位轉換為標準欄位
      *
      * YiPay 使用的欄位：
+     * - bankCode: 銀行代碼 (ATM, type=4)
      * - account: 虛擬帳號 (ATM, type=4)
+     * - expirationDate: 繳費期限 (ATM/CVS)
      * - pinCode: 繳費代碼 (CVS, type=3)
      *
      * @param  array  $data  YiPay 通知資料
@@ -95,14 +97,25 @@ class YiPayGateway extends OmnipayGateway
         $normalized = [];
         $type = (int) ($data['type'] ?? 0);
 
-        if ($type === self::TYPE_ATM && isset($data['account'])) {
+        if ($type === self::TYPE_ATM) {
+            // ATM: bankCode -> BankCode (銀行代碼)
+            if (isset($data['bankCode'])) {
+                $normalized['BankCode'] = $data['bankCode'];
+            }
             // ATM: account -> vAccount (虛擬帳號)
-            $normalized['vAccount'] = $data['account'];
+            if (isset($data['account'])) {
+                $normalized['vAccount'] = $data['account'];
+            }
         }
 
         if ($type === self::TYPE_CVS && isset($data['pinCode'])) {
             // CVS: pinCode -> PaymentNo (繳費代碼)
             $normalized['PaymentNo'] = $data['pinCode'];
+        }
+
+        // 繳費期限
+        if (isset($data['expirationDate'])) {
+            $normalized['ExpireDate'] = $data['expirationDate'];
         }
 
         return $normalized;
