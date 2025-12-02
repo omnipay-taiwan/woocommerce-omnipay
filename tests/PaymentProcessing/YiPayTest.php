@@ -154,7 +154,8 @@ class YiPayTest extends TestCase
     public static function paymentInfoProvider()
     {
         return [
-            'ATM' => ['4', 'account', '9103522175887271', '_omnipay_virtual_account'],
+            'ATM account' => ['4', 'account', '9103522175887271', '_omnipay_virtual_account'],
+            'ATM bankCode' => ['4', 'bankCode', '009', '_omnipay_bank_code'],
             'CVS' => ['3', 'pinCode', 'CVS24112512345', '_omnipay_payment_no'],
         ];
     }
