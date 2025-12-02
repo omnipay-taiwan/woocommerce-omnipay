@@ -82,6 +82,27 @@ class YiPayTest extends TestCase
         $this->assertEquals('0|Incorrect checkCode', $output);
     }
 
+    public function test_accept_notification_failed()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'statusCode' => '99',
+            'statusMessage' => '交易失敗',
+            'type' => '2',
+        ]));
+
+        ob_start();
+        $this->gateway->acceptNotification();
+        $output = ob_get_clean();
+
+        $this->assertEquals('0|交易失敗', $output);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('failed', $order->get_status());
+    }
+
     public static function productTypeProvider()
     {
         return [
@@ -158,6 +179,27 @@ class YiPayTest extends TestCase
             'ATM bankCode' => ['4', 'bankCode', '009', '_omnipay_bank_code'],
             'CVS' => ['3', 'pinCode', 'CVS24112512345', '_omnipay_payment_no'],
         ];
+    }
+
+    // ==================== completePurchase ====================
+
+    public function test_complete_purchase_failed()
+    {
+        $order = $this->createOrder(100);
+        $this->gateway->process_payment($order->get_id());
+
+        $this->simulateCallback($this->makeCallbackData($order, [
+            'statusCode' => '99',
+            'statusMessage' => '交易失敗',
+            'type' => '2',
+        ]));
+
+        $url = $this->gateway->completePurchase();
+
+        $this->assertStringNotContainsString('order-received', $url);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('failed', $order->get_status());
     }
 
     // ==================== 金額驗證測試 ====================

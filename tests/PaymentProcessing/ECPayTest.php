@@ -221,6 +221,9 @@ class ECPayTest extends TestCase
         $url = $this->gateway->completePurchase();
 
         $this->assertStringNotContainsString('order-received', $url);
+
+        $order = wc_get_order($order->get_id());
+        $this->assertEquals('failed', $order->get_status());
     }
 
     // ==================== allow_resubmit 測試 ====================
