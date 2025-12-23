@@ -91,4 +91,50 @@ interface GatewayAdapterInterface
      * 預設為 _payment_info，ECPay 為 _notify
      */
     public function getPaymentInfoEndpoint(): string;
+
+    /**
+     * 取得回調成功回應
+     *
+     * 不同金流可能有不同的回應格式
+     */
+    public function getCallbackSuccessResponse(): string;
+
+    /**
+     * 取得回調失敗回應
+     *
+     * @param  string  $message  錯誤訊息
+     */
+    public function getCallbackFailureResponse(string $message): string;
+
+    /**
+     * 是否為付款資訊通知（非付款完成通知）
+     *
+     * 某些金流（如 ECPay）的付款資訊通知與付款完成通知共用同一個 endpoint
+     *
+     * @param  array  $data  通知資料
+     */
+    public function isPaymentInfoNotification(array $data): bool;
+
+    /**
+     * 初始化設定
+     */
+    public function initialize(array $settings);
+
+    /**
+     * 處理 notify callback
+     *
+     * 統一處理 acceptNotification 或 completePurchase fallback
+     *
+     * @param  array  $parameters  callback 參數
+     * @return array{
+     *     transactionId: string,
+     *     transactionReference: ?string,
+     *     isSuccessful: bool,
+     *     message: ?string,
+     *     data: ?array,
+     *     reply: ?string,
+     *     isPaymentInfo: bool
+     * }
+     */
+    public function processNotifyCallback(array $parameters): array;
 }

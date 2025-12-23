@@ -2,6 +2,9 @@
 
 namespace WooCommerceOmnipay\Services;
 
+use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
+use WooCommerceOmnipay\Adapters\GatewayAdapterInterface;
+
 /**
  * Gateway Registry
  *
@@ -11,6 +14,7 @@ namespace WooCommerceOmnipay\Services;
  * - gateway: 必須指定的 Omnipay gateway 名稱
  * - gateway_id: 必須指定的 WooCommerce gateway ID
  * - class: 選填，指定的 Gateway 類別（完整命名空間）
+ * - adapter: 選填，指定的 Adapter 類別（完整命名空間）
  * - title: 選填，預設使用 gateway
  * - description: 選填，自動產生
  */
@@ -147,5 +151,34 @@ class GatewayRegistry
 
         // 3. 使用 OmnipayGateway 動態建立
         return \WooCommerceOmnipay\Gateways\OmnipayGateway::class;
+    }
+
+    /**
+     * 解析 Gateway Adapter
+     *
+     * 優先順序：
+     * 1. 配置中指定的 adapter
+     * 2. 自動偵測的具體 Adapter 類別
+     * 3. 使用 DefaultGatewayAdapter
+     *
+     * @param  array  $gatewayInfo  Gateway 配置資訊
+     */
+    public function resolveAdapter(array $gatewayInfo): GatewayAdapterInterface
+    {
+        // 1. 優先使用配置中指定的 adapter
+        if (! empty($gatewayInfo['adapter']) && class_exists($gatewayInfo['adapter'])) {
+            return new $gatewayInfo['adapter'];
+        }
+
+        $name = $gatewayInfo['gateway'] ?? '';
+
+        // 2. 嘗試自動偵測具體 Adapter 類別
+        $adapterClass = "\\WooCommerceOmnipay\\Adapters\\{$name}Adapter";
+        if (class_exists($adapterClass)) {
+            return new $adapterClass;
+        }
+
+        // 3. 使用 DefaultGatewayAdapter
+        return new DefaultGatewayAdapter($name);
     }
 }

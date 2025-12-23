@@ -199,7 +199,8 @@ function woocommerce_omnipay_add_gateways($gateways)
 
     foreach ($registry->getGateways() as $gatewayInfo) {
         $gatewayClass = $registry->resolveGatewayClass($gatewayInfo);
-        $gateways[] = new $gatewayClass($gatewayInfo);
+        $adapter = $registry->resolveAdapter($gatewayInfo);
+        $gateways[] = new $gatewayClass($gatewayInfo, $adapter);
     }
 
     return $gateways;

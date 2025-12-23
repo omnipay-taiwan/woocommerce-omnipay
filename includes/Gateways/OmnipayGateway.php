@@ -5,11 +5,11 @@ namespace WooCommerceOmnipay\Gateways;
 use Omnipay\Common\Message\NotificationInterface;
 use Psr\Log\LoggerInterface;
 use WC_Payment_Gateway;
-use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
 use WooCommerceOmnipay\Adapters\GatewayAdapterInterface;
 use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
 use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
+use WooCommerceOmnipay\Services\GatewayRegistry;
 use WooCommerceOmnipay\Services\OmnipayBridge;
 use WooCommerceOmnipay\Services\WooCommerceLogger;
 use WooCommerceOmnipay\Traits\DisplaysPaymentInfo;
@@ -72,7 +72,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->method_description = $config['description'] ?? '';
         $this->name = $config['gateway'] ?? '';
         $this->overrideSettings = $config['override_settings'] ?? false;
-        $this->adapter = $adapter ?? new DefaultGatewayAdapter($this->name);
+        $this->adapter = $adapter ?? (new GatewayRegistry)->resolveAdapter($config);
 
         // 設定 icon
         if (! empty($config['icon'])) {
@@ -182,20 +182,6 @@ class OmnipayGateway extends WC_Payment_Gateway
             'default' => '',
             'desc_tip' => true,
         ];
-    }
-
-    /**
-     * Get Omnipay gateway instance
-     *
-     * @return \Omnipay\Common\GatewayInterface
-     */
-    public function get_gateway()
-    {
-        // 只有在 overrideSettings = true 時才傳遞 Gateway 自己的設定
-        // 否則使用空陣列，讓 Bridge 從共用設定中讀取
-        $settings = $this->overrideSettings ? $this->settings : [];
-
-        return $this->bridge->createGateway($settings);
     }
 
     /**
@@ -320,18 +306,6 @@ class OmnipayGateway extends WC_Payment_Gateway
     protected function getPaymentInfoUrl($order)
     {
         return WC()->api_request_url($this->id.$this->adapter->getPaymentInfoEndpoint());
-    }
-
-    /**
-     * 取得 callback 參數
-     *
-     * 某些金流（如 YiPay）需要額外參數來驗證簽章
-     *
-     * @return array
-     */
-    protected function getCallbackParameters()
-    {
-        return $this->adapter->getCallbackParameters($this->id);
     }
 
     /**
@@ -480,33 +454,19 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->logger->info('acceptNotification: Received callback', $this->getRequestData());
 
         try {
-            $adapter = $this->getAdapter();
+            $result = $this->getAdapter()->processNotifyCallback(
+                $this->adapter->getCallbackParameters($this->id)
+            );
 
-            if ($adapter->supportsAcceptNotification()) {
-                $notification = $adapter->acceptNotification($this->getCallbackParameters());
-
-                $this->logger->info('acceptNotification: Parsed notification', [
-                    'transaction_id' => $notification->getTransactionId(),
-                    'transaction_reference' => $notification->getTransactionReference(),
-                    'status' => $notification->getTransactionStatus(),
-                    'message' => $notification->getMessage(),
-                ]);
-
-                $this->handleNotification($notification);
-
-                return;
-            }
-
-            $response = $adapter->completePurchase($this->getCallbackParameters());
-
-            $this->logger->info('acceptNotification: Fallback response', [
-                'transaction_id' => $response->getTransactionId(),
-                'successful' => $response->isSuccessful(),
-                'message' => $response->getMessage(),
-                'data' => Helper::maskSensitiveData($response->getData() ?? []),
+            $this->logger->info('acceptNotification: Parsed callback', [
+                'transaction_id' => $result['transactionId'],
+                'transaction_reference' => $result['transactionReference'],
+                'is_successful' => $result['isSuccessful'],
+                'message' => $result['message'],
+                'is_payment_info' => $result['isPaymentInfo'],
             ]);
 
-            $this->handleCompletePurchaseCallback($response);
+            $this->handleCallbackResult($result);
         } catch (OrderNotFoundException $e) {
             $this->logger->warning('acceptNotification: '.$e->getMessage());
             $this->sendCallbackResponse(false, 'Order not found');
@@ -589,7 +549,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->logger->info('completePurchase: User returned', $this->getRequestData());
 
         try {
-            $response = $this->getAdapter()->completePurchase($this->getCallbackParameters());
+            $response = $this->getAdapter()->completePurchase($this->adapter->getCallbackParameters($this->id));
 
             $this->logger->info('completePurchase: Gateway response', [
                 'transaction_id' => $response->getTransactionId(),
@@ -625,18 +585,29 @@ class OmnipayGateway extends WC_Payment_Gateway
     }
 
     /**
-     * 處理 AcceptNotification 回應的核心邏輯
+     * 處理統一的 callback 結果
      *
-     * 子類可覆寫此方法來自訂 notification 處理邏輯
-     *
-     * @param  NotificationInterface  $notification
+     * @param  array  $result  Adapter 回傳的統一結果
      */
-    protected function handleNotification($notification)
+    protected function handleCallbackResult(array $result)
     {
-        $order = $this->orders->findByTransactionIdOrFail($notification->getTransactionId());
+        // 處理付款資訊通知
+        if ($result['isPaymentInfo']) {
+            $order = $this->orders->findByTransactionId($result['transactionId']);
+
+            if ($order) {
+                $this->savePaymentInfo($order, $result['data']);
+            }
+
+            $this->sendCallbackResultResponse($result, true);
+
+            return;
+        }
+
+        $order = $this->orders->findByTransactionIdOrFail($result['transactionId']);
 
         // 金額驗證
-        if (! $this->validateAmount($order, $notification->getData())) {
+        if (! $this->adapter->validateAmount($result['data'], (int) $order->get_total())) {
             $this->sendCallbackResponse(false, 'Amount mismatch');
 
             return;
@@ -648,54 +619,33 @@ class OmnipayGateway extends WC_Payment_Gateway
             return;
         }
 
-        $status = $notification->getTransactionStatus();
-
-        if ($status !== NotificationInterface::STATUS_COMPLETED) {
-            $errorMessage = $notification->getMessage() ?: 'Payment failed';
+        if (! $result['isSuccessful']) {
+            $errorMessage = $result['message'] ?: 'Payment failed';
             $this->onPaymentFailed($order, $errorMessage, 'callback', false);
             $this->sendCallbackResponse(false, $errorMessage);
 
             return;
         }
 
-        $this->completeOrderPayment($order, $notification->getTransactionReference(), 'callback');
-
-        $this->sendNotificationResponse($notification);
+        $this->completeOrderPayment($order, $result['transactionReference'], 'callback');
+        $this->sendCallbackResultResponse($result, true);
     }
 
     /**
-     * 驗證回調金額是否與訂單金額相符
+     * 發送 callback 結果回應
      *
-     * @param  \WC_Order  $order  訂單
-     * @param  array  $data  回調資料
-     * @return bool
+     * 優先使用 reply，否則使用預設回應
      */
-    protected function validateAmount($order, array $data)
+    protected function sendCallbackResultResponse(array $result, bool $success)
     {
-        return $this->adapter->validateAmount($data, (int) $order->get_total());
-    }
-
-    /**
-     * 處理 completePurchase callback 回應的核心邏輯
-     *
-     * 用於 gateway 不支援 acceptNotification 時的 fallback
-     * 子類可覆寫此方法來自訂處理邏輯
-     *
-     * @param  mixed  $response
-     */
-    protected function handleCompletePurchaseCallback($response)
-    {
-        $order = $this->orders->findByTransactionIdOrFail($response->getTransactionId());
-
-        if (! $this->shouldProcessOrder($order)) {
-            $this->sendCallbackResponse(true);
+        if (! empty($result['reply'])) {
+            echo $result['reply'];
+            Helper::terminate();
 
             return;
         }
 
-        $result = $this->handlePaymentResult($response, $order, 'callback', false);
-
-        $this->sendCallbackResponse($result['success'], $result['message']);
+        $this->sendCallbackResponse($success);
     }
 
     /**
@@ -801,7 +751,9 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function sendCallbackResponse($success, $message = '')
     {
-        echo $success ? '1|OK' : '0|'.$message;
+        echo $success
+            ? $this->adapter->getCallbackSuccessResponse()
+            : $this->adapter->getCallbackFailureResponse($message);
         Helper::terminate();
     }
 
