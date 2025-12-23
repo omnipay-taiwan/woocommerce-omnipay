@@ -41,7 +41,9 @@ class ECPayAdapter implements GatewayAdapterInterface
             'Barcode1' => $data['Barcode1'] ?? null,
             'Barcode2' => $data['Barcode2'] ?? null,
             'Barcode3' => $data['Barcode3'] ?? null,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 
     public function getPaymentInfoEndpoint(): string
@@ -78,7 +80,9 @@ class ECPayAdapter implements GatewayAdapterInterface
         return array_filter([
             'card6no' => $data['card6no'] ?? null,
             'card4no' => $data['card4no'] ?? null,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 
     public function getPaymentInfoNote(array $data): ?string
