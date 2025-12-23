@@ -233,15 +233,15 @@ class AdminSettingsTest extends WP_UnitTestCase
             'MerchantID' => 'gateway_merchant',
         ];
 
-        // 測試 OmnipayBridge 的設定合併邏輯
-        $bridge = new \WooCommerceOmnipay\Services\OmnipayBridge('ECPay');
-        $mergedSettings = $bridge->getMergedSettings($gatewaySettings);
+        // 測試設定合併邏輯
+        $settingsManager = new \WooCommerceOmnipay\Services\SettingsManager('ECPay');
+        $allSettings = $settingsManager->getAllSettings($gatewaySettings);
 
         // Gateway 設定優先
-        $this->assertEquals('gateway_merchant', $mergedSettings['MerchantID']);
+        $this->assertEquals('gateway_merchant', $allSettings['MerchantID']);
         // 未覆蓋的使用共用設定
-        $this->assertEquals('shared_key', $mergedSettings['HashKey']);
-        $this->assertEquals('shared_iv', $mergedSettings['HashIV']);
+        $this->assertEquals('shared_key', $allSettings['HashKey']);
+        $this->assertEquals('shared_iv', $allSettings['HashIV']);
     }
 
     /**
@@ -259,13 +259,13 @@ class AdminSettingsTest extends WP_UnitTestCase
         // Gateway 沒有設定
         delete_option('woocommerce_omnipay_ecpay_settings');
 
-        // 測試 OmnipayBridge 的設定合併邏輯
-        $bridge = new \WooCommerceOmnipay\Services\OmnipayBridge('ECPay');
-        $mergedSettings = $bridge->getMergedSettings([]);
+        // 測試設定合併邏輯
+        $settingsManager = new \WooCommerceOmnipay\Services\SettingsManager('ECPay');
+        $allSettings = $settingsManager->getAllSettings([]);
 
-        $this->assertEquals('shared_merchant', $mergedSettings['MerchantID']);
-        $this->assertEquals('shared_key', $mergedSettings['HashKey']);
-        $this->assertEquals('shared_iv', $mergedSettings['HashIV']);
+        $this->assertEquals('shared_merchant', $allSettings['MerchantID']);
+        $this->assertEquals('shared_key', $allSettings['HashKey']);
+        $this->assertEquals('shared_iv', $allSettings['HashIV']);
     }
 
     /**

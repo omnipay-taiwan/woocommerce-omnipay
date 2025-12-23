@@ -141,6 +141,13 @@ class GatewayAdapterTest extends TestCase
                 ['PaymentNo', 'ExpireDate'],
             ],
 
+            // NewebPay BARCODE
+            'NewebPay BARCODE' => [
+                NewebPayAdapter::class,
+                ['Barcode_1' => 'TEST1', 'Barcode_2' => 'TEST2', 'Barcode_3' => 'TEST3', 'PaymentType' => 'BARCODE', 'ExpireDate' => '2024-12-31'],
+                ['Barcode1', 'Barcode2', 'Barcode3', 'ExpireDate'],
+            ],
+
             // YiPay ATM
             'YiPay ATM' => [
                 YiPayAdapter::class,

@@ -42,13 +42,26 @@ class NewebPayAdapter implements GatewayAdapterInterface
             $normalized['BankCode'] = $data['BankCode'];
         }
 
-        // CodeNo 根據 PaymentType 轉換
-        if (isset($data['CodeNo'])) {
-            if ($paymentType === self::PAYMENT_TYPE_ATM) {
-                // ATM: CodeNo -> vAccount (虛擬帳號)
+        // 根據 PaymentType 處理不同欄位
+        if ($paymentType === self::PAYMENT_TYPE_ATM) {
+            // ATM: CodeNo -> vAccount (虛擬帳號)
+            if (isset($data['CodeNo'])) {
                 $normalized['vAccount'] = $data['CodeNo'];
-            } else {
-                // CVS/BARCODE: CodeNo -> PaymentNo (繳費代碼)
+            }
+        } elseif ($paymentType === self::PAYMENT_TYPE_BARCODE) {
+            // BARCODE: Barcode_1, Barcode_2, Barcode_3 -> Barcode1, Barcode2, Barcode3
+            if (isset($data['Barcode_1'])) {
+                $normalized['Barcode1'] = $data['Barcode_1'];
+            }
+            if (isset($data['Barcode_2'])) {
+                $normalized['Barcode2'] = $data['Barcode_2'];
+            }
+            if (isset($data['Barcode_3'])) {
+                $normalized['Barcode3'] = $data['Barcode_3'];
+            }
+        } elseif ($paymentType === self::PAYMENT_TYPE_CVS) {
+            // CVS: CodeNo -> PaymentNo (繳費代碼)
+            if (isset($data['CodeNo'])) {
                 $normalized['PaymentNo'] = $data['CodeNo'];
             }
         }

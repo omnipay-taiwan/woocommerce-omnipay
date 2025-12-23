@@ -24,6 +24,11 @@ interface GatewayAdapterInterface
     public function getGatewayName(): string;
 
     /**
+     * 取得 Omnipay Gateway 預設參數
+     */
+    public function getDefaultParameters(): array;
+
+    /**
      * 建立 Omnipay Gateway
      */
     public function createGateway(array $settings): GatewayInterface;
@@ -111,4 +116,12 @@ interface GatewayAdapterInterface
      * 初始化設定
      */
     public function initialize(array $settings);
+
+    /**
+     * 從所有設定中初始化（自動過濾並轉換型別）
+     *
+     * @param  array  $allSettings  所有設定（已合併優先順序）
+     * @return self
+     */
+    public function initializeFromSettings(array $allSettings);
 }

@@ -2,7 +2,8 @@
 
 namespace WooCommerceOmnipay;
 
-use WooCommerceOmnipay\Services\OmnipayBridge;
+use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
+use WooCommerceOmnipay\Services\SettingsManager;
 
 /**
  * 共用設定頁面
@@ -17,9 +18,9 @@ class SharedSettingsPage
     private $gateways;
 
     /**
-     * @var array 已建立的 OmnipayBridge 實例快取
+     * @var array 已建立的 Adapter 實例快取
      */
-    private $bridges = [];
+    private $adapters = [];
 
     /**
      * @param  array  $gateways  Gateway 配置列表
@@ -196,8 +197,8 @@ class SharedSettingsPage
             return [];
         }
 
-        $optionKey = OmnipayBridge::getOptionKey($name);
-        $bridge = $this->get_bridge($name);
+        $optionKey = SettingsManager::getOptionKey($name);
+        $adapter = $this->get_adapter($name);
 
         $fields = [
             [
@@ -211,7 +212,7 @@ class SharedSettingsPage
         // 加入 Omnipay 參數欄位（排除通用設定中的欄位）
         $generalFields = ['testMode', 'transaction_id_prefix', 'allow_resubmit'];
 
-        foreach ($bridge->getDefaultParameters() as $key => $defaultValue) {
+        foreach ($adapter->getDefaultParameters() as $key => $defaultValue) {
             // 跳過通用設定中的欄位
             if (in_array($key, $generalFields, true)) {
                 continue;
@@ -292,18 +293,18 @@ class SharedSettingsPage
     }
 
     /**
-     * 取得 OmnipayBridge 實例
+     * 取得 Adapter 實例
      *
      * @param  string  $name
-     * @return OmnipayBridge
+     * @return DefaultGatewayAdapter
      */
-    private function get_bridge($name)
+    private function get_adapter($name)
     {
-        if (! isset($this->bridges[$name])) {
-            $this->bridges[$name] = new OmnipayBridge($name);
+        if (! isset($this->adapters[$name])) {
+            $this->adapters[$name] = new DefaultGatewayAdapter($name);
         }
 
-        return $this->bridges[$name];
+        return $this->adapters[$name];
     }
 
     /**

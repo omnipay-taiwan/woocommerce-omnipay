@@ -6,6 +6,7 @@ use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\NotificationInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\Omnipay;
+use WooCommerceOmnipay\Helper;
 
 /**
  * Gateway Operations Trait
@@ -36,6 +37,24 @@ trait GatewayOperationsTrait
     }
 
     /**
+     * 從所有設定中初始化（自動過濾並轉換型別）
+     *
+     * @param  array  $allSettings  所有設定（已合併優先順序）
+     */
+    public function initializeFromSettings(array $allSettings): self
+    {
+        $parameters = [];
+
+        foreach ($this->getDefaultParameters() as $key => $defaultValue) {
+            if (isset($allSettings[$key]) && $allSettings[$key] !== '') {
+                $parameters[$key] = Helper::convertOptionValue($allSettings[$key], $defaultValue);
+            }
+        }
+
+        return $this->initialize($parameters);
+    }
+
+    /**
      * 取得 Gateway 實例
      */
     protected function getGateway(): GatewayInterface
@@ -45,6 +64,11 @@ trait GatewayOperationsTrait
         }
 
         return $this->gateway;
+    }
+
+    public function getDefaultParameters(): array
+    {
+        return Omnipay::create($this->getGatewayName())->getDefaultParameters();
     }
 
     public function createGateway(array $settings): GatewayInterface

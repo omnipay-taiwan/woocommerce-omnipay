@@ -10,7 +10,7 @@ use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
 use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 use WooCommerceOmnipay\Services\GatewayRegistry;
-use WooCommerceOmnipay\Services\OmnipayBridge;
+use WooCommerceOmnipay\Services\SettingsManager;
 use WooCommerceOmnipay\Services\WooCommerceLogger;
 use WooCommerceOmnipay\Traits\DisplaysPaymentInfo;
 
@@ -25,13 +25,6 @@ class OmnipayGateway extends WC_Payment_Gateway
     use DisplaysPaymentInfo;
 
     /**
-     * Omnipay gateway 名稱（例如：'Dummy', 'PayPal_Express'）
-     *
-     * @var string
-     */
-    protected $name;
-
-    /**
      * 是否顯示 Omnipay 參數欄位以覆蓋共用設定
      *
      * @var bool
@@ -39,9 +32,9 @@ class OmnipayGateway extends WC_Payment_Gateway
     protected $overrideSettings = false;
 
     /**
-     * @var OmnipayBridge
+     * @var SettingsManager
      */
-    protected $bridge;
+    protected $settingsManager;
 
     /**
      * @var OrderRepository
@@ -70,7 +63,6 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->id = 'omnipay_'.($config['gateway_id'] ?? '');
         $this->method_title = $config['title'] ?? '';
         $this->method_description = $config['description'] ?? '';
-        $this->name = $config['gateway'] ?? '';
         $this->overrideSettings = $config['override_settings'] ?? false;
         $this->adapter = $adapter ?? (new GatewayRegistry)->resolveAdapter($config);
 
@@ -79,7 +71,7 @@ class OmnipayGateway extends WC_Payment_Gateway
             $this->icon = $config['icon'];
         }
 
-        $this->bridge = new OmnipayBridge($this->name);
+        $this->settingsManager = new SettingsManager($this->adapter->getGatewayName());
         $this->orders = new OrderRepository;
         $this->logger = new WooCommerceLogger($this->id);
 
@@ -125,7 +117,7 @@ class OmnipayGateway extends WC_Payment_Gateway
         }
 
         // Fallback 到共用設定
-        return $this->bridge->getSharedValue($key, $default);
+        return $this->settingsManager->getSharedValue($key, $default);
     }
 
     /**
@@ -161,7 +153,7 @@ class OmnipayGateway extends WC_Payment_Gateway
 
         // 從 Omnipay gateway 取得參數並產生欄位（根據配置決定是否顯示）
         if ($this->overrideSettings) {
-            $omnipayFields = $this->bridge->buildFormFields();
+            $omnipayFields = $this->settingsManager->buildFormFields($this->adapter->getDefaultParameters());
             $this->form_fields = array_merge($this->form_fields, $omnipayFields);
         }
 
@@ -191,11 +183,9 @@ class OmnipayGateway extends WC_Payment_Gateway
      */
     protected function getAdapter()
     {
-        // 從 Bridge 取得合併後的設定
         $settings = $this->overrideSettings ? $this->settings : [];
-        $mergedSettings = $this->bridge->getMergedSettings($settings);
 
-        return $this->adapter->initialize($mergedSettings);
+        return $this->adapter->initializeFromSettings($this->settingsManager->getAllSettings($settings));
     }
 
     /**
