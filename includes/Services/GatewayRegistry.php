@@ -113,21 +113,10 @@ class GatewayRegistry
 
         $defaults = [
             'title' => $name,
-            'description' => $this->generateDescription($config['title'] ?? $name),
+            'description' => '',
         ];
 
         return array_merge($defaults, $config);
-    }
-
-    /**
-     * 產生預設 description
-     *
-     * @param  string  $title
-     * @return string
-     */
-    protected function generateDescription($title)
-    {
-        return sprintf('Pay with %s', $title);
     }
 
     /**

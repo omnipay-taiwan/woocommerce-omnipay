@@ -244,9 +244,9 @@ class GatewayRegistryTest extends WP_UnitTestCase
     }
 
     /**
-     * 測試：沒有 description 時產生預設 description
+     * 測試：沒有 description 時預設為空字串
      */
-    public function test_generates_default_description_when_not_provided()
+    public function test_description_defaults_to_empty_when_not_provided()
     {
         $config = [
             'gateways' => [
@@ -261,6 +261,28 @@ class GatewayRegistryTest extends WP_UnitTestCase
         $registry = new GatewayRegistry($config);
         $gateways = $registry->getGateways();
 
-        $this->assertNotEmpty($gateways[0]['description']);
+        $this->assertEmpty($gateways[0]['description']);
+    }
+
+    /**
+     * 測試：config 傳入 description 時使用該值
+     */
+    public function test_uses_description_from_config()
+    {
+        $config = [
+            'gateways' => [
+                [
+                    'gateway' => 'Dummy',
+                    'gateway_id' => 'dummy',
+                    'title' => 'Test Payment',
+                    'description' => 'Custom description',
+                ],
+            ],
+        ];
+
+        $registry = new GatewayRegistry($config);
+        $gateways = $registry->getGateways();
+
+        $this->assertEquals('Custom description', $gateways[0]['description']);
     }
 }
