@@ -5,6 +5,7 @@ namespace WooCommerceOmnipay\Adapters\Concerns;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Omnipay;
 use WooCommerceOmnipay\Helper;
+use WooCommerceOmnipay\WordPress\HttpClient;
 
 /**
  * Creates Gateway
@@ -66,14 +67,22 @@ trait CreatesGateway
 
     public function getDefaultParameters(): array
     {
-        return Omnipay::create($this->getGatewayName())->getDefaultParameters();
+        return Omnipay::create($this->getGatewayName(), $this->createHttpClient())->getDefaultParameters();
     }
 
     public function createGateway(array $settings): GatewayInterface
     {
-        $gateway = Omnipay::create($this->getGatewayName());
+        $gateway = Omnipay::create($this->getGatewayName(), $this->createHttpClient());
         $gateway->initialize($settings);
 
         return $gateway;
+    }
+
+    /**
+     * 建立 HTTP Client
+     */
+    protected function createHttpClient(): HttpClient
+    {
+        return new HttpClient;
     }
 }

@@ -4,6 +4,7 @@ namespace WooCommerceOmnipay;
 
 use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
 use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
+use WooCommerceOmnipay\WordPress\HttpClient;
 
 /**
  * Gateway Registry
@@ -59,7 +60,7 @@ class GatewayRegistry
         }
 
         try {
-            \Omnipay\Omnipay::create($name);
+            \Omnipay\Omnipay::create($name, new HttpClient);
             $this->availabilityCache[$name] = true;
         } catch (\Exception $e) {
             $this->availabilityCache[$name] = false;
