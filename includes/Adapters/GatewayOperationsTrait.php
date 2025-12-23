@@ -100,11 +100,6 @@ trait GatewayOperationsTrait
         return '0|'.$message;
     }
 
-    public function isPaymentInfoNotification(array $data): bool
-    {
-        return false;
-    }
-
     public function getPaymentInfoNote(array $data): ?string
     {
         return null;

@@ -100,15 +100,6 @@ interface GatewayAdapterInterface
     public function getCallbackFailureResponse(string $message): string;
 
     /**
-     * 是否為付款資訊通知（非付款完成通知）
-     *
-     * 某些金流（如 ECPay）的付款資訊通知與付款完成通知共用同一個 endpoint
-     *
-     * @param  array  $data  通知資料
-     */
-    public function isPaymentInfoNotification(array $data): bool;
-
-    /**
      * 取得付款資訊通知的訂單備註
      *
      * @param  array  $data  通知資料
