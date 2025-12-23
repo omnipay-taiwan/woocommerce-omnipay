@@ -193,7 +193,7 @@ function woocommerce_omnipay_maybe_render_redirect_form()
  */
 function woocommerce_omnipay_add_gateways($gateways)
 {
-    $registry = new \WooCommerceOmnipay\Services\GatewayRegistry(
+    $registry = new \WooCommerceOmnipay\GatewayRegistry(
         woocommerce_omnipay_get_config()
     );
 

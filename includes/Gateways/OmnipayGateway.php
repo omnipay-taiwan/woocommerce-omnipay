@@ -7,12 +7,12 @@ use Psr\Log\LoggerInterface;
 use WC_Payment_Gateway;
 use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
 use WooCommerceOmnipay\Exceptions\OrderNotFoundException;
+use WooCommerceOmnipay\GatewayRegistry;
 use WooCommerceOmnipay\Gateways\Concerns\DisplaysPaymentInfo;
 use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
-use WooCommerceOmnipay\Services\GatewayRegistry;
-use WooCommerceOmnipay\Services\SettingsManager;
-use WooCommerceOmnipay\Services\WooCommerceLogger;
+use WooCommerceOmnipay\WordPress\Logger;
+use WooCommerceOmnipay\WordPress\SettingsManager;
 
 /**
  * Omnipay Gateway
@@ -73,7 +73,7 @@ class OmnipayGateway extends WC_Payment_Gateway
 
         $this->settingsManager = new SettingsManager($this->adapter->getGatewayName());
         $this->orders = new OrderRepository;
-        $this->logger = new WooCommerceLogger($this->id);
+        $this->logger = new Logger($this->id);
 
         // 預設不啟用付款欄位（子類可以覆寫）
         $this->has_fields = false;

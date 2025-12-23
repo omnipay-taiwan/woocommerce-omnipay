@@ -1,6 +1,6 @@
 <?php
 
-namespace WooCommerceOmnipay\Services;
+namespace WooCommerceOmnipay;
 
 use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
 use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;

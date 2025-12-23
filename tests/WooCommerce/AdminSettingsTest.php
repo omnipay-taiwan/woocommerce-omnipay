@@ -234,7 +234,7 @@ class AdminSettingsTest extends WP_UnitTestCase
         ];
 
         // 測試設定合併邏輯
-        $settingsManager = new \WooCommerceOmnipay\Services\SettingsManager('ECPay');
+        $settingsManager = new \WooCommerceOmnipay\WordPress\SettingsManager('ECPay');
         $allSettings = $settingsManager->getAllSettings($gatewaySettings);
 
         // Gateway 設定優先
@@ -260,7 +260,7 @@ class AdminSettingsTest extends WP_UnitTestCase
         delete_option('woocommerce_omnipay_ecpay_settings');
 
         // 測試設定合併邏輯
-        $settingsManager = new \WooCommerceOmnipay\Services\SettingsManager('ECPay');
+        $settingsManager = new \WooCommerceOmnipay\WordPress\SettingsManager('ECPay');
         $allSettings = $settingsManager->getAllSettings([]);
 
         $this->assertEquals('shared_merchant', $allSettings['MerchantID']);

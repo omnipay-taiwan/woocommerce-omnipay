@@ -16,11 +16,6 @@ use WooCommerceOmnipay\Adapters\NewebPayAdapter;
  */
 class NewebPayGateway extends OmnipayGateway
 {
-    /**
-     * @var NewebPayAdapter
-     */
-    protected $adapter;
-
     public function __construct(array $config, ?NewebPayAdapter $adapter = null)
     {
         parent::__construct($config, $adapter ?? new NewebPayAdapter);

@@ -3,7 +3,7 @@
 namespace WooCommerceOmnipay;
 
 use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
-use WooCommerceOmnipay\Services\SettingsManager;
+use WooCommerceOmnipay\WordPress\SettingsManager;
 
 /**
  * 共用設定頁面

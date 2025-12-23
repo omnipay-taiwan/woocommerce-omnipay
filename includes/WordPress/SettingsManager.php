@@ -1,6 +1,6 @@
 <?php
 
-namespace WooCommerceOmnipay\Services;
+namespace WooCommerceOmnipay\WordPress;
 
 /**
  * Settings Manager

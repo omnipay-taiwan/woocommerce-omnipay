@@ -3,7 +3,6 @@
 namespace WooCommerceOmnipay\Gateways;
 
 use WooCommerceOmnipay\Adapters\YiPayAdapter;
-use WooCommerceOmnipay\Helper;
 
 /**
  * YiPay Gateway
@@ -20,11 +19,6 @@ use WooCommerceOmnipay\Helper;
  */
 class YiPayGateway extends OmnipayGateway
 {
-    /**
-     * @var YiPayAdapter
-     */
-    protected $adapter;
-
     public function __construct(array $config, ?YiPayAdapter $adapter = null)
     {
         parent::__construct($config, $adapter ?? new YiPayAdapter);
@@ -55,22 +49,10 @@ class YiPayGateway extends OmnipayGateway
      */
     protected function handlePaymentInfo()
     {
-        $adapter = $this->getAdapter();
-        $notification = $adapter->acceptNotification($this->getCallbackParameters());
-
-        $this->logger->info('getPaymentInfo: Parsed notification', [
-            'transaction_id' => $notification->getTransactionId(),
-            'data' => Helper::maskSensitiveData($notification->getData() ?? []),
-        ]);
-
+        $notification = $this->getAdapter()->acceptNotification($this->getCallbackParameters());
         $order = $this->orders->findByTransactionIdOrFail($notification->getTransactionId());
 
         $this->savePaymentInfo($order, $notification->getData());
-
-        $this->logger->info('getPaymentInfo: Payment info saved', [
-            'order_id' => $order->get_id(),
-        ]);
-
         $this->sendNotificationResponse($notification);
 
         return null;

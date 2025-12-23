@@ -11,11 +11,6 @@ use WooCommerceOmnipay\Adapters\ECPayAdapter;
  */
 class ECPayGateway extends OmnipayGateway
 {
-    /**
-     * @var ECPayAdapter
-     */
-    protected $adapter;
-
     public function __construct(array $config, ?ECPayAdapter $adapter = null)
     {
         parent::__construct($config, $adapter ?? new ECPayAdapter);
