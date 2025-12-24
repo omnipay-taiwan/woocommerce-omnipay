@@ -1,11 +1,11 @@
 <?php
 
-use WooCommerceOmnipay\Gateways\ECPay\ECPayDCAGateway;
 use WooCommerceOmnipay\Gateways\Features\ExpireDateFeature;
+use WooCommerceOmnipay\Gateways\Features\FrequencyRecurringFeature;
 use WooCommerceOmnipay\Gateways\Features\InstallmentFeature;
 use WooCommerceOmnipay\Gateways\Features\MaxAmountFeature;
 use WooCommerceOmnipay\Gateways\Features\MinAmountFeature;
-use WooCommerceOmnipay\Gateways\NewebPay\NewebPayDCAGateway;
+use WooCommerceOmnipay\Gateways\Features\ScheduledRecurringFeature;
 
 // Icon URLs
 $ecpayIcon = plugins_url('assets/images/payment-icons/ecpay.png', dirname(__DIR__).'/woocommerce-omnipay.php');
@@ -55,9 +55,9 @@ return [
     [
         'gateway' => 'ECPay',
         'gateway_id' => 'ecpay_dca',
-        'class' => ECPayDCAGateway::class,
         'title' => __('ECPay Recurring Payment', 'woocommerce-omnipay'),
         'icon' => $ecpayIcon,
+        'features' => [new FrequencyRecurringFeature],
     ],
     [
         'gateway' => 'ECPay',
@@ -153,9 +153,9 @@ return [
     [
         'gateway' => 'NewebPay',
         'gateway_id' => 'newebpay_dca',
-        'class' => NewebPayDCAGateway::class,
         'title' => __('NewebPay Recurring Payment', 'woocommerce-omnipay'),
         'icon' => $newebpayIcon,
+        'features' => [new ScheduledRecurringFeature],
     ],
     [
         'gateway' => 'NewebPay',

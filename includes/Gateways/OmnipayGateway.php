@@ -11,6 +11,7 @@ use WooCommerceOmnipay\GatewayRegistry;
 use WooCommerceOmnipay\Gateways\Concerns\DisplaysPaymentInfo;
 use WooCommerceOmnipay\Gateways\Features\FeatureFactory;
 use WooCommerceOmnipay\Gateways\Features\GatewayFeature;
+use WooCommerceOmnipay\Gateways\Features\RecurringFeature;
 use WooCommerceOmnipay\Helper;
 use WooCommerceOmnipay\Repositories\OrderRepository;
 use WooCommerceOmnipay\WordPress\Logger;
@@ -73,6 +74,13 @@ class OmnipayGateway extends WC_Payment_Gateway
         $this->overrideSettings = $config['override_settings'] ?? false;
         $this->adapter = $adapter ?? (new GatewayRegistry)->resolveAdapter($config);
         $this->features = FeatureFactory::createFromConfig($config);
+
+        // 載入 DCA 方案
+        foreach ($this->features as $feature) {
+            if ($feature instanceof RecurringFeature) {
+                $feature->loadPeriods($this);
+            }
+        }
 
         // 設定 icon
         if (! empty($config['icon'])) {
@@ -187,6 +195,43 @@ class OmnipayGateway extends WC_Payment_Gateway
         foreach ($this->features as $feature) {
             $feature->initFormFields($this->form_fields);
         }
+    }
+
+    /**
+     * 生成 periods 欄位 HTML（DCA 專用）
+     *
+     * @param  string  $key  欄位鍵
+     * @param  array  $data  欄位資料
+     * @return string
+     */
+    public function generate_periods_html($key, $data)
+    {
+        foreach ($this->features as $feature) {
+            if ($feature instanceof RecurringFeature) {
+                return $feature->generatePeriodsHtml($key, $data, $this);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * 處理管理選項
+     *
+     * @return bool
+     */
+    public function process_admin_options()
+    {
+        // 讓 DCA Features 處理額外選項
+        foreach ($this->features as $feature) {
+            if ($feature instanceof RecurringFeature) {
+                if (! $feature->processAdminOptions($this)) {
+                    return false;
+                }
+            }
+        }
+
+        return parent::process_admin_options();
     }
 
     /**

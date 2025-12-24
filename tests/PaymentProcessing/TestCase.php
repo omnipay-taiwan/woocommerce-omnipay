@@ -116,4 +116,15 @@ abstract class TestCase extends WP_UnitTestCase
 
         return $product;
     }
+
+    /**
+     * 建立 Gateway 實例（重新從 WooCommerce 載入）
+     */
+    protected function createGateway()
+    {
+        WC()->payment_gateways()->payment_gateways = [];
+        WC()->payment_gateways()->init();
+
+        return WC()->payment_gateways->payment_gateways()['omnipay_'.$this->gatewayId];
+    }
 }

@@ -3,7 +3,6 @@
 namespace WooCommerceOmnipay\Tests\PaymentProcessing\NewebPay;
 
 use Omnipay\NewebPay\Encryptor;
-use WooCommerceOmnipay\Gateways\NewebPay\NewebPayDCAGateway;
 use WooCommerceOmnipay\Tests\PaymentProcessing\TestCase;
 
 /**
@@ -42,12 +41,6 @@ class NewebPayDCAGatewayTest extends TestCase
                 'periodTimes' => 12,
                 'periodStartType' => 2,
             ],
-        ]);
-
-        $this->gateway = new NewebPayDCAGateway([
-            'gateway' => 'NewebPay',
-            'gateway_id' => 'newebpay_dca',
-            'title' => '藍新定期定額',
         ]);
 
         // Set up Blocks mode settings
@@ -291,10 +284,7 @@ class NewebPayDCAGatewayTest extends TestCase
         update_option('woocommerce_omnipay_newebpay_dca_periods', $testPeriods);
 
         // Create new gateway instance to trigger loadDcaPeriods
-        $newGateway = new NewebPayDCAGateway([
-            'gateway' => 'NewebPay',
-            'gateway_id' => 'newebpay_dca',
-        ]);
+        $newGateway = $this->createGateway();
 
         // Verify periods were loaded by testing generate_periods_html output
         $html = $newGateway->generate_periods_html('periods', []);
@@ -392,10 +382,7 @@ class NewebPayDCAGatewayTest extends TestCase
         ]);
 
         // Create new gateway instance to load periods
-        $gateway = new NewebPayDCAGateway([
-            'gateway' => 'NewebPay',
-            'gateway_id' => 'newebpay_dca',
-        ]);
+        $gateway = $this->createGateway();
 
         // Test via public WooCommerce API method
         $html = $gateway->generate_periods_html('periods', []);
@@ -461,11 +448,7 @@ class NewebPayDCAGatewayTest extends TestCase
         ]);
 
         // Recreate gateway to load new periods
-        $this->gateway = new NewebPayDCAGateway([
-            'gateway' => 'NewebPay',
-            'gateway_id' => 'newebpay_dca',
-            'title' => '藍新定期定額',
-        ]);
+        $this->gateway = $this->createGateway();
 
         // Mock is_checkout() to return true using filter
         add_filter('woocommerce_is_checkout', '__return_true');
