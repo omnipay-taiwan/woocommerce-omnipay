@@ -10,11 +10,11 @@ namespace WooCommerceOmnipay\Gateways\Features;
 class FeatureFactory
 {
     /**
-     * @var array Feature 名稱對應的類別或工廠方法
+     * @var array Feature 名稱對應的類別
      */
     private static $featureMap = [
-        'min_amount' => [AmountLimitFeature::class, 'min'],
-        'max_amount' => [AmountLimitFeature::class, 'max'],
+        'min_amount' => MinAmountFeature::class,
+        'max_amount' => MaxAmountFeature::class,
         'expire_date' => ExpireDateFeature::class,
     ];
 
@@ -60,15 +60,9 @@ class FeatureFactory
 
         // 字串名稱
         if (is_string($feature) && isset(self::$featureMap[$feature])) {
-            $mapped = self::$featureMap[$feature];
+            $class = self::$featureMap[$feature];
 
-            // 工廠方法 [ClassName, 'methodName']
-            if (is_array($mapped)) {
-                return call_user_func($mapped);
-            }
-
-            // 類別名稱
-            return new $mapped;
+            return new $class;
         }
 
         return null;
