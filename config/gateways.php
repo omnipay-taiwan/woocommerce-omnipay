@@ -49,7 +49,7 @@ return [
         'payment_data' => ['ChoosePayment' => 'Credit'],
         'features' => [
             new MinAmountFeature,
-            new InstallmentFeature('CreditInstallment', [], [], true),
+            new InstallmentFeature('CreditInstallment', ['periodRules' => ['30' => ['min_amount' => 20000]]]),
         ],
     ],
     [

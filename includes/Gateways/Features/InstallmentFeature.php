@@ -28,26 +28,23 @@ class InstallmentFeature extends AbstractFeature
     private $defaults;
 
     /**
-     * @var bool 是否驗證 30 期最低金額 (ECPay 圓夢分期需 >= 20000)
+     * @var array 期數規則 (如 ['30' => ['min_amount' => 20000]])
      */
-    private $validate30MinAmount;
+    private $periodRules;
 
     /**
-     * @param  string  $fieldName  API 欄位名稱 (如 'CreditInstallment' 或 'InstFlag')
-     * @param  array  $options  可用的分期選項
-     * @param  array  $defaults  預設啟用的分期
-     * @param  bool  $validate30MinAmount  是否驗證 30 期最低金額
+     * @param  string  $fieldName  API 欄位名稱（必填）
+     * @param  array  $config  配置選項
+     *                         - options: 可用的分期選項
+     *                         - defaults: 預設啟用的分期
+     *                         - periodRules: 期數規則 (如 ['30' => ['min_amount' => 20000]])
      */
-    public function __construct(
-        string $fieldName = 'CreditInstallment',
-        array $options = [],
-        array $defaults = [],
-        bool $validate30MinAmount = false
-    ) {
+    public function __construct(string $fieldName, array $config = [])
+    {
         $this->fieldName = $fieldName;
-        $this->options = $options ?: $this->getDefaultOptions();
-        $this->defaults = $defaults ?: ['3', '6', '12', '18', '24'];
-        $this->validate30MinAmount = $validate30MinAmount;
+        $this->options = $config['options'] ?? $this->getDefaultOptions();
+        $this->defaults = $config['defaults'] ?? ['3', '6', '12', '18', '24'];
+        $this->periodRules = $config['periodRules'] ?? [];
     }
 
     /**
@@ -80,7 +77,7 @@ class InstallmentFeature extends AbstractFeature
         echo woocommerce_omnipay_get_template('checkout/installment-form.php', [
             'installments' => $installments,
             'total' => WC()->cart->get_total('edit'),
-            'validate_30_min_amount' => $this->validate30MinAmount,
+            'period_rules' => $this->periodRules,
         ]);
     }
 

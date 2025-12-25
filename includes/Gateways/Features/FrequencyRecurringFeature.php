@@ -24,6 +24,16 @@ class FrequencyRecurringFeature extends AbstractFeature implements RecurringFeat
     private $gatewayId;
 
     /**
+     * @var string 警告訊息
+     */
+    private $warningMessage;
+
+    public function __construct(string $warningMessage = '')
+    {
+        $this->warningMessage = $warningMessage;
+    }
+
+    /**
      * 欄位配置
      */
     private function getFieldConfigs(): array
@@ -184,15 +194,16 @@ class FrequencyRecurringFeature extends AbstractFeature implements RecurringFeat
         $total = WC()->cart ? WC()->cart->total : 0;
 
         $gatewayName = method_exists($gateway, 'getGatewayName') ? $gateway->getGatewayName() : '';
+        $warningMessage = $this->warningMessage ?: sprintf(
+            __('You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
+            $gatewayName
+        );
 
         echo woocommerce_omnipay_get_template('checkout/frequency-recurring-form.php', [
             'periods' => $this->dcaPeriods,
             'total' => $total,
             'periodFields' => ['periodType', 'frequency', 'execTimes'],
-            'warningMessage' => sprintf(
-                __('You will use <strong>%s recurring credit card payment</strong>. Please note that the products you purchased are <strong>non-single payment</strong> products.', 'woocommerce-omnipay'),
-                $gatewayName
-            ),
+            'warningMessage' => $warningMessage,
         ]);
     }
 

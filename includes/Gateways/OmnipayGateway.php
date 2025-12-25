@@ -115,7 +115,7 @@ class OmnipayGateway extends WC_Payment_Gateway
     }
 
     /**
-     * 取得 Gateway 名稱 (ECPay, NewebPay, YiPay 等)
+     * 取得金流商名稱 (ECPay, NewebPay, YiPay 等品牌名稱)
      */
     public function getGatewayName(): string
     {
