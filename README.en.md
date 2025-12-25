@@ -14,7 +14,7 @@ A flexible WooCommerce payment gateway plugin that integrates multiple Taiwan-ba
 ## Features
 
 - **Multiple Payment Gateways**: Support for ECPay, NewebPay, YiPay, and Bank Transfer
-- **Omnipay Integration**: Built on the robust Omnipay payment abstraction library
+- **Omnipay Integration**: Built on the robust Omnipay payment abstraction library, using WordPress native HTTP API
 - **HPOS Compatible**: Full support for WooCommerce High-Performance Order Storage
 - **Offline Payment Support**: ATM transfers, CVS codes, and barcode payments
 - **Automatic Redirect Handling**: Supports both GET and POST redirect methods
@@ -212,6 +212,11 @@ woocommerce-omnipay/
 │   │   │   ├── FrequencyRecurringFeature.php
 │   │   │   └── ScheduledRecurringFeature.php
 │   │   └── OmnipayGateway.php      # Universal gateway class
+│   ├── Http/
+│   │   ├── WordPressHttpClient.php # WordPress HTTP Client
+│   │   ├── CurlClient.php          # cURL HTTP Client
+│   │   ├── StreamClient.php        # Stream HTTP Client
+│   │   └── NetworkException.php    # Network exception
 │   ├── WordPress/
 │   │   ├── Logger.php              # PSR-3 logger
 │   │   └── SettingsManager.php     # Settings manager

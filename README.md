@@ -14,7 +14,7 @@
 ## 功能特色
 
 - **多金流支援**：支援綠界、藍新、乙禾及銀行轉帳
-- **Omnipay 整合**：基於穩定的 Omnipay 付款抽象層
+- **Omnipay 整合**：基於穩定的 Omnipay 付款抽象層，使用 WordPress 原生 HTTP API
 - **HPOS 相容**：完整支援 WooCommerce 高效能訂單儲存
 - **離線付款支援**：ATM 轉帳、超商代碼、條碼繳費
 - **自動導向處理**：支援 GET 和 POST 導向方式
@@ -234,6 +234,11 @@ woocommerce-omnipay/
 │   │   │   ├── FrequencyRecurringFeature.php
 │   │   │   └── ScheduledRecurringFeature.php
 │   │   └── OmnipayGateway.php      # 通用金流類別
+│   ├── Http/
+│   │   ├── WordPressHttpClient.php # WordPress HTTP Client
+│   │   ├── CurlClient.php          # cURL HTTP Client
+│   │   ├── StreamClient.php        # Stream HTTP Client
+│   │   └── NetworkException.php    # 網路例外
 │   ├── WordPress/
 │   │   ├── Logger.php              # PSR-3 日誌
 │   │   └── SettingsManager.php     # 設定管理
