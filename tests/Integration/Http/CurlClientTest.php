@@ -2,8 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests\Integration\Http;
 
+use WooCommerceOmnipay\Exceptions\NetworkException;
 use WooCommerceOmnipay\Http\CurlClient;
-use WooCommerceOmnipay\Http\NetworkException;
 
 class CurlClientTest extends HttpClientTestCase
 {

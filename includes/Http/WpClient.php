@@ -5,13 +5,14 @@ namespace WooCommerceOmnipay\Http;
 use Nyholm\Psr7\Response;
 use Omnipay\Common\Http\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
+use WooCommerceOmnipay\Exceptions\NetworkException;
 
 /**
  * WordPress HTTP Client for Omnipay
  *
  * 使用 WordPress 內建的 wp_remote_request() 取代 php-http/curl-client
  */
-class WordPressHttpClient implements ClientInterface
+class WpClient implements ClientInterface
 {
     /**
      * {@inheritdoc}

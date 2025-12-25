@@ -212,11 +212,13 @@ woocommerce-omnipay/
 │   │   │   ├── FrequencyRecurringFeature.php
 │   │   │   └── ScheduledRecurringFeature.php
 │   │   └── OmnipayGateway.php      # Universal gateway class
+│   ├── Exceptions/
+│   │   ├── NetworkException.php    # Network exception
+│   │   └── OrderNotFoundException.php
 │   ├── Http/
-│   │   ├── WordPressHttpClient.php # WordPress HTTP Client
+│   │   ├── WpClient.php            # WordPress HTTP Client
 │   │   ├── CurlClient.php          # cURL HTTP Client
-│   │   ├── StreamClient.php        # Stream HTTP Client
-│   │   └── NetworkException.php    # Network exception
+│   │   └── StreamClient.php        # Stream HTTP Client
 │   ├── WordPress/
 │   │   ├── Logger.php              # PSR-3 logger
 │   │   └── SettingsManager.php     # Settings manager

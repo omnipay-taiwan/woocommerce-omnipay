@@ -234,11 +234,13 @@ woocommerce-omnipay/
 │   │   │   ├── FrequencyRecurringFeature.php
 │   │   │   └── ScheduledRecurringFeature.php
 │   │   └── OmnipayGateway.php      # 通用金流類別
+│   ├── Exceptions/
+│   │   ├── NetworkException.php    # 網路例外
+│   │   └── OrderNotFoundException.php
 │   ├── Http/
-│   │   ├── WordPressHttpClient.php # WordPress HTTP Client
+│   │   ├── WpClient.php            # WordPress HTTP Client
 │   │   ├── CurlClient.php          # cURL HTTP Client
-│   │   ├── StreamClient.php        # Stream HTTP Client
-│   │   └── NetworkException.php    # 網路例外
+│   │   └── StreamClient.php        # Stream HTTP Client
 │   ├── WordPress/
 │   │   ├── Logger.php              # PSR-3 日誌
 │   │   └── SettingsManager.php     # 設定管理

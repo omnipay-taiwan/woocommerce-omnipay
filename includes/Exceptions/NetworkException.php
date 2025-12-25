@@ -1,6 +1,6 @@
 <?php
 
-namespace WooCommerceOmnipay\Http;
+namespace WooCommerceOmnipay\Exceptions;
 
 use RuntimeException;
 

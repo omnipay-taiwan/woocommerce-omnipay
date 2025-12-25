@@ -5,6 +5,7 @@ namespace WooCommerceOmnipay\Http;
 use Nyholm\Psr7\Response;
 use Omnipay\Common\Http\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
+use WooCommerceOmnipay\Exceptions\NetworkException;
 
 /**
  * Stream HTTP Client for Omnipay

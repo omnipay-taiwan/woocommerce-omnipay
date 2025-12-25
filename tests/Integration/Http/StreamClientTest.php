@@ -2,7 +2,7 @@
 
 namespace WooCommerceOmnipay\Tests\Integration\Http;
 
-use WooCommerceOmnipay\Http\NetworkException;
+use WooCommerceOmnipay\Exceptions\NetworkException;
 use WooCommerceOmnipay\Http\StreamClient;
 
 class StreamClientTest extends HttpClientTestCase
