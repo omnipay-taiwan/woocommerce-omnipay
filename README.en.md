@@ -182,8 +182,8 @@ This plugin uses the **Feature Composition Pattern**, combining functionality th
 | `MaxAmountFeature` | Maximum amount limit | Default $30,000 |
 | `InstallmentFeature` | Credit card installments | `fieldName` (required), `config` (options, defaults, periodRules) |
 | `ExpireDateFeature` | Payment expiry settings | `fieldName`, `defaultDays`, `minDays`, `maxDays` |
-| `FrequencyRecurringFeature` | Recurring payments (frequency-based) | `warningMessage` (optional) |
-| `ScheduledRecurringFeature` | Recurring payments (schedule-based) | `warningMessage` (optional) |
+| `FrequencyRecurringFeature` | Recurring payments (frequency-based) | - |
+| `ScheduledRecurringFeature` | Recurring payments (schedule-based) | - |
 
 ### Project Structure
 

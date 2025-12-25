@@ -204,8 +204,8 @@ composer test
 | `MaxAmountFeature` | 最高金額限制 | 預設 $30,000 |
 | `InstallmentFeature` | 信用卡分期 | `fieldName`（必填）、`config`（options, defaults, periodRules） |
 | `ExpireDateFeature` | 繳費期限設定 | `fieldName`、`defaultDays`、`minDays`、`maxDays` |
-| `FrequencyRecurringFeature` | 定期定額（依頻率） | `warningMessage`（選填） |
-| `ScheduledRecurringFeature` | 定期定額（依排程） | `warningMessage`（選填） |
+| `FrequencyRecurringFeature` | 定期定額（依頻率） | - |
+| `ScheduledRecurringFeature` | 定期定額（依排程） | - |
 
 ### 專案結構
 
