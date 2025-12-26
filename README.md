@@ -182,7 +182,7 @@ composer test
 #### Gateway 配置範例
 
 ```php
-// config/gateways.php
+// woocommerce_omnipay_get_gateways() 函式中的配置
 [
     'gateway' => 'ECPay',
     'gateway_id' => 'ecpay_atm',
@@ -211,8 +211,6 @@ composer test
 
 ```
 woocommerce-omnipay/
-├── config/
-│   └── gateways.php                # 金流配置（Feature 組合）
 ├── includes/
 │   ├── Adapters/                   # Gateway Adapter 層
 │   │   ├── Contracts/

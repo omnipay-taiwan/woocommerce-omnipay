@@ -160,7 +160,7 @@ This plugin uses the **Feature Composition Pattern**, combining functionality th
 #### Gateway Configuration Example
 
 ```php
-// config/gateways.php
+// Configuration in woocommerce_omnipay_get_gateways() function
 [
     'gateway' => 'ECPay',
     'gateway_id' => 'ecpay_atm',
@@ -189,8 +189,6 @@ This plugin uses the **Feature Composition Pattern**, combining functionality th
 
 ```
 woocommerce-omnipay/
-├── config/
-│   └── gateways.php                # Gateway configuration (Feature composition)
 ├── includes/
 │   ├── Adapters/                   # Gateway Adapter layer
 │   │   ├── Contracts/

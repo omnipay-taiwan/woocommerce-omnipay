@@ -26,7 +26,7 @@ class CheckoutFlowTest extends TestCase
      */
     protected function getDcaGatewayConfig(): array
     {
-        $gateways = require WOOCOMMERCE_OMNIPAY_PLUGIN_DIR.'config/gateways.php';
+        $gateways = woocommerce_omnipay_get_gateways();
 
         foreach ($gateways as $config) {
             if (($config['gateway_id'] ?? '') === 'ecpay_dca') {
