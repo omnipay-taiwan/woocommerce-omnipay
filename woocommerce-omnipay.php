@@ -39,12 +39,15 @@ add_action('before_woocommerce_init', function () {
 
 /**
  * Load plugin textdomain for translations
+ *
+ * Must be loaded early (before plugins_loaded priority 10) because
+ * config/gateways.php uses __() for translatable strings.
  */
 function woocommerce_omnipay_load_textdomain()
 {
     load_plugin_textdomain('woocommerce-omnipay', false, dirname(plugin_basename(__FILE__)).'/languages');
 }
-add_action('init', 'woocommerce_omnipay_load_textdomain');
+add_action('plugins_loaded', 'woocommerce_omnipay_load_textdomain', 0);
 
 /**
  * Initialize the plugin
