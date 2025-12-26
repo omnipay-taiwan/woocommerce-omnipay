@@ -2,8 +2,6 @@
 
 namespace WooCommerceOmnipay\Gateways;
 
-use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
-
 /**
  * NewebPay Gateway
  *
@@ -14,10 +12,4 @@ use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
  * - NotifyURL (notifyUrl) → _notify endpoint → acceptNotification()
  * - ReturnURL (returnUrl) → _complete endpoint → completePurchase()
  */
-class NewebPayGateway extends OmnipayGateway
-{
-    public function __construct(array $config, ?GatewayAdapter $adapter = null)
-    {
-        parent::__construct($config, $adapter);
-    }
-}
+class NewebPayGateway extends OmnipayGateway {}

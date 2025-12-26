@@ -2,8 +2,6 @@
 
 namespace WooCommerceOmnipay\Gateways;
 
-use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
-
 /**
  * ECPay Gateway
  *
@@ -11,11 +9,6 @@ use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
  */
 class ECPayGateway extends OmnipayGateway
 {
-    public function __construct(array $config, ?GatewayAdapter $adapter = null)
-    {
-        parent::__construct($config, $adapter);
-    }
-
     /**
      * 準備付款資料
      *
