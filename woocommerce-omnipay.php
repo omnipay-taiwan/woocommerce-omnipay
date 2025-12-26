@@ -63,8 +63,8 @@ function woocommerce_omnipay_init()
     // Register payment gateways
     add_filter('woocommerce_payment_gateways', 'woocommerce_omnipay_add_gateways');
 
-    // Register shared settings pages
-    woocommerce_omnipay_register_shared_settings();
+    // Register shared settings pages (after init to ensure textdomain is loaded)
+    add_action('init', 'woocommerce_omnipay_register_shared_settings', 20);
 
     // Handle redirect form rendering
     add_action('template_redirect', 'woocommerce_omnipay_maybe_render_redirect_form');
