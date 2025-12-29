@@ -220,6 +220,27 @@ class BankTransferTest extends TestCase
         $this->assertFalse($response['success']);
     }
 
+    public function test_submit_remittance_last5_rejects_invalid_nonce()
+    {
+        $order = $this->createSimpleOrder(1000);
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
+
+        $_POST = [
+            'order_id' => $order->get_id(),
+            'order_key' => $order->get_order_key(),
+            'remittance_last5' => '12345',
+            'nonce' => 'invalid_nonce',
+        ];
+
+        ob_start();
+        $this->gateway->handleRemittance();
+        $response = json_decode(ob_get_clean(), true);
+
+        $this->assertFalse($response['success']);
+        $this->assertStringContainsString('Security', $response['message']);
+    }
+
     // ==================== 帳號池測試 ====================
 
     public function test_process_payment_with_bank_accounts_as_json_string()
@@ -401,6 +422,115 @@ class BankTransferTest extends TestCase
         $output = ob_get_clean();
 
         $this->assertStringNotContainsString('bank_account_index', $output);
+    }
+
+    public function test_has_fields_is_false_in_user_choice_mode_with_single_account()
+    {
+        // user_choice 模式但只有一個帳號時，has_fields 應該為 false
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        // hasPaymentFields 在只有一個帳號時返回 false
+        // has_fields 會在 constructor 中根據 hasPaymentFields() 設定
+        $this->assertFalse($this->gateway->has_fields);
+    }
+
+    public function test_has_fields_is_true_in_user_choice_mode_with_multiple_accounts()
+    {
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+                ['bank_code' => '808', 'account_number' => '222222222'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        $this->assertTrue($this->gateway->has_fields);
+    }
+
+    public function test_user_choice_mode_fallback_to_random_when_no_post_index()
+    {
+        // 設定帳號池
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+                ['bank_code' => '808', 'account_number' => '222222222'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        // 不設定 $_POST['bank_account_index']，應該 fallback 到隨機選擇
+        unset($_POST['bank_account_index']);
+
+        $order = $this->createSimpleOrder(1000);
+        $result = $this->gateway->process_payment($order->get_id());
+
+        $this->assertEquals('success', $result['result']);
+
+        $redirectData = get_transient('omnipay_redirect_'.$order->get_id());
+        $bankCode = $redirectData['data']['bank_code'];
+
+        // 應該是帳號池中的其中一個
+        $this->assertContains($bankCode, ['013', '808']);
+    }
+
+    public function test_get_payment_info_output_plain_text_mode()
+    {
+        $order = $this->createSimpleOrder(1000);
+        $order->update_meta_data('_omnipay_bank_code', '012');
+        $order->update_meta_data('_omnipay_bank_account', '1234567890');
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
+
+        $output = $this->gateway->getPaymentInfoOutput($order, true);
+
+        // 純文字模式應該包含付款資訊
+        $this->assertStringContainsString('012-1234567890', $output);
+        // 但不應該包含匯款確認表單（HTML）
+        $this->assertStringNotContainsString('<form', $output);
+    }
+
+    public function test_get_payment_info_output_for_different_gateway_order()
+    {
+        $order = $this->createSimpleOrder(1000);
+        $order->update_meta_data('_omnipay_bank_code', '012');
+        $order->update_meta_data('_omnipay_bank_account', '1234567890');
+        // 使用不同的 gateway
+        $order->set_payment_method('omnipay_ecpay');
+        $order->save();
+
+        $output = $this->gateway->getPaymentInfoOutput($order);
+
+        // 應該顯示付款資訊
+        $this->assertStringContainsString('012-1234567890', $output);
+        // 但不應該顯示匯款確認表單（因為不是此 gateway 的訂單）
+        $this->assertStringNotContainsString('remittance_last5', $output);
+    }
+
+    public function test_get_payment_info_output_with_empty_bank_info()
+    {
+        $order = $this->createSimpleOrder(1000);
+        // 不設定銀行資訊
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
+
+        $output = $this->gateway->getPaymentInfoOutput($order);
+
+        // 應該有表單但沒有帳號資訊
+        $this->assertStringContainsString('remittance_last5', $output);
     }
 
     // ==================== Helper ====================
