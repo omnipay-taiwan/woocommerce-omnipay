@@ -407,8 +407,9 @@ class BankTransferTest extends TestCase
 
     // ==================== 結帳頁面 UI 測試 ====================
 
-    public function test_payment_fields_shows_account_selector_in_user_choice_mode()
+    public function test_payment_fields_does_not_show_account_selector()
     {
+        // 結帳頁不顯示帳號選擇，帳號資訊在感謝頁顯示
         $this->updateSharedSettings([
             'bank_accounts' => [
                 ['bank_code' => '013', 'account_number' => '111111111'],
@@ -424,16 +425,79 @@ class BankTransferTest extends TestCase
         $this->gateway->payment_fields();
         $output = ob_get_clean();
 
-        $this->assertStringContainsString('bank_account_index', $output);
-        $this->assertStringContainsString('013-111111111', $output);
-        $this->assertStringContainsString('808-222222222', $output);
+        // 不應該有帳號選擇器
+        $this->assertStringNotContainsString('bank_account_index', $output);
+        $this->assertStringNotContainsString('013', $output);
+        $this->assertStringNotContainsString('808', $output);
     }
 
-    public function test_payment_fields_hides_account_selector_in_random_mode()
+    public function test_has_fields_is_false_with_single_account()
     {
+        // 結帳頁不需要選擇，has_fields 應該為 false
         $this->updateSharedSettings([
             'bank_accounts' => [
                 ['bank_code' => '013', 'account_number' => '111111111'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        $this->assertFalse($this->gateway->has_fields);
+    }
+
+    public function test_has_fields_is_false_in_user_choice_mode_with_multiple_accounts()
+    {
+        // 結帳頁不需要選擇，has_fields 應該為 false
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+                ['bank_code' => '808', 'account_number' => '222222222'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        $this->assertFalse($this->gateway->has_fields);
+    }
+
+    public function test_user_choice_mode_shows_all_accounts_on_thankyou_page()
+    {
+        // user_choice 模式：感謝頁顯示所有帳號
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+                ['bank_code' => '808', 'account_number' => '222222222'],
+            ],
+            'selection_mode' => 'user_choice',
+            'secret' => 'test_secret',
+            'testMode' => 'yes',
+        ]);
+        $this->reloadGateway();
+
+        $order = $this->createSimpleOrder(1000);
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
+
+        $output = $this->gateway->getPaymentInfoOutput($order);
+
+        // 應該顯示所有帳號
+        $this->assertStringContainsString('013', $output);
+        $this->assertStringContainsString('111111111', $output);
+        $this->assertStringContainsString('808', $output);
+        $this->assertStringContainsString('222222222', $output);
+    }
+
+    public function test_random_mode_shows_only_saved_account_on_thankyou_page()
+    {
+        // random 模式：感謝頁只顯示儲存的帳號
+        $this->updateSharedSettings([
+            'bank_accounts' => [
+                ['bank_code' => '013', 'account_number' => '111111111'],
+                ['bank_code' => '808', 'account_number' => '222222222'],
             ],
             'selection_mode' => 'random',
             'secret' => 'test_secret',
@@ -441,44 +505,20 @@ class BankTransferTest extends TestCase
         ]);
         $this->reloadGateway();
 
-        ob_start();
-        $this->gateway->payment_fields();
-        $output = ob_get_clean();
+        $order = $this->createSimpleOrder(1000);
+        $order->update_meta_data('_omnipay_bank_code', '013');
+        $order->update_meta_data('_omnipay_bank_account', '111111111');
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
 
-        $this->assertStringNotContainsString('bank_account_index', $output);
-    }
+        $output = $this->gateway->getPaymentInfoOutput($order);
 
-    public function test_has_fields_is_true_with_single_account()
-    {
-        // 只有一個帳號時，has_fields 應該為 true（顯示帳號資訊）
-        $this->updateSharedSettings([
-            'bank_accounts' => [
-                ['bank_code' => '013', 'account_number' => '111111111'],
-            ],
-            'selection_mode' => 'user_choice',
-            'secret' => 'test_secret',
-            'testMode' => 'yes',
-        ]);
-        $this->reloadGateway();
-
-        // 單一帳號需要顯示帳號資訊
-        $this->assertTrue($this->gateway->has_fields);
-    }
-
-    public function test_has_fields_is_true_in_user_choice_mode_with_multiple_accounts()
-    {
-        $this->updateSharedSettings([
-            'bank_accounts' => [
-                ['bank_code' => '013', 'account_number' => '111111111'],
-                ['bank_code' => '808', 'account_number' => '222222222'],
-            ],
-            'selection_mode' => 'user_choice',
-            'secret' => 'test_secret',
-            'testMode' => 'yes',
-        ]);
-        $this->reloadGateway();
-
-        $this->assertTrue($this->gateway->has_fields);
+        // 應該只顯示儲存的帳號
+        $this->assertStringContainsString('013', $output);
+        $this->assertStringContainsString('111111111', $output);
+        // 不應該顯示其他帳號
+        $this->assertStringNotContainsString('808', $output);
+        $this->assertStringNotContainsString('222222222', $output);
     }
 
     public function test_user_choice_mode_fallback_to_random_when_no_post_index()

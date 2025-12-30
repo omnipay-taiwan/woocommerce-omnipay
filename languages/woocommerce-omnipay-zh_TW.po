@@ -444,6 +444,9 @@ msgid "For daily periods, PeriodPoint must be 2-999 (day interval)."
 msgstr "日週期的 PeriodPoint 必須是 2-999（天數間隔）。"
 
 # Bank Accounts Table
+msgid "Bank Details"
+msgstr "銀行帳戶資訊"
+
 msgid "Bank Code"
 msgstr "銀行代碼"
 

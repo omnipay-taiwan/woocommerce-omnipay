@@ -160,46 +160,12 @@ class BankTransferGateway extends OmnipayGateway
 
     /**
      * 檢查是否有付款欄位需要顯示
+     *
+     * 銀行轉帳不需要在結帳頁選擇帳號，帳號資訊在感謝頁顯示
      */
     protected function hasPaymentFields(): bool
     {
-        $config = $this->getBankAccountsConfig();
-        $accountCount = count($config['accounts']);
-
-        // 有帳號時需要顯示：單一帳號顯示資訊，多帳號 + user_choice 顯示選單
-        return $accountCount === 1
-            || ($config['selection_mode'] === 'user_choice' && $accountCount > 1);
-    }
-
-    /**
-     * 顯示付款欄位
-     */
-    public function payment_fields()
-    {
-        parent::payment_fields();
-
-        $config = $this->getBankAccountsConfig();
-        $accounts = $config['accounts'];
-
-        if (empty($accounts)) {
-            return;
-        }
-
-        // 只有一個帳號時，顯示純文字
-        if (count($accounts) === 1) {
-            echo woocommerce_omnipay_get_template('checkout/bank-account-info.php', [
-                'account' => $accounts[0],
-            ]);
-
-            return;
-        }
-
-        // 多個帳號且 user_choice 模式時，顯示下拉選單
-        if ($config['selection_mode'] === 'user_choice') {
-            echo woocommerce_omnipay_get_template('checkout/bank-account-form.php', [
-                'accounts' => $accounts,
-            ]);
-        }
+        return false;
     }
 
     /**
@@ -255,6 +221,51 @@ class BankTransferGateway extends OmnipayGateway
      * @return string
      */
     public function getPaymentInfoOutput($order, $plainText = false)
+    {
+        $config = $this->getBankAccountsConfig();
+
+        // user_choice 模式：顯示所有帳號讓用戶選擇
+        if ($config['selection_mode'] === 'user_choice' && ! empty($config['accounts'])) {
+            return $this->getAllAccountsOutput($order, $config['accounts'], $plainText);
+        }
+
+        // random/round_robin 模式：顯示儲存在訂單中的帳號
+        return $this->getSavedAccountOutput($order, $plainText);
+    }
+
+    /**
+     * 取得所有帳號的輸出（user_choice 模式）
+     *
+     * @param  \WC_Order  $order
+     * @param  bool  $plainText
+     * @return string
+     */
+    protected function getAllAccountsOutput($order, array $accounts, $plainText = false)
+    {
+        $output = woocommerce_omnipay_get_template('order/bank-accounts-list.php', [
+            'accounts' => $accounts,
+            'plainText' => $plainText,
+        ]);
+
+        // 純文字模式或非此 gateway 的訂單不顯示表單
+        if ($plainText || $order->get_payment_method() !== $this->id) {
+            return $output;
+        }
+
+        // 加入匯款帳號後5碼表單
+        $output .= $this->getRemittanceFormOutput($order);
+
+        return $output;
+    }
+
+    /**
+     * 取得儲存帳號的輸出（random/round_robin 模式）
+     *
+     * @param  \WC_Order  $order
+     * @param  bool  $plainText
+     * @return string
+     */
+    protected function getSavedAccountOutput($order, $plainText = false)
     {
         // 取得銀行資訊
         $bankCode = $order->get_meta(OrderRepository::META_BANK_CODE);
