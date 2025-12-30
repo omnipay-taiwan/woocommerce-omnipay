@@ -177,14 +177,27 @@ class BankTransferGateway extends OmnipayGateway
         parent::payment_fields();
 
         $config = $this->getBankAccountsConfig();
+        $accounts = $config['accounts'];
 
-        if ($config['selection_mode'] !== 'user_choice' || empty($config['accounts'])) {
+        if (empty($accounts)) {
             return;
         }
 
-        echo woocommerce_omnipay_get_template('checkout/bank-account-form.php', [
-            'accounts' => $config['accounts'],
-        ]);
+        // 只有一個帳號時，顯示純文字
+        if (count($accounts) === 1) {
+            echo woocommerce_omnipay_get_template('checkout/bank-account-info.php', [
+                'account' => $accounts[0],
+            ]);
+
+            return;
+        }
+
+        // 多個帳號且 user_choice 模式時，顯示下拉選單
+        if ($config['selection_mode'] === 'user_choice') {
+            echo woocommerce_omnipay_get_template('checkout/bank-account-form.php', [
+                'accounts' => $accounts,
+            ]);
+        }
     }
 
     /**
