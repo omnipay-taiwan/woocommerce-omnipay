@@ -37,6 +37,14 @@ interface GatewayAdapter
     public function getDefaultParameters(): array;
 
     /**
+     * 取得設定頁面欄位
+     *
+     * 預設與 getDefaultParameters() 相同，
+     * 但某些 Gateway（如 BankTransfer）可能只需要部分欄位
+     */
+    public function getSettingsFields(): array;
+
+    /**
      * 建立 Omnipay Gateway
      */
     public function createGateway(array $settings): GatewayInterface;

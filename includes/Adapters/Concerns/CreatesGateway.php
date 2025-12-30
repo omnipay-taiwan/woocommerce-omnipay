@@ -87,6 +87,11 @@ trait CreatesGateway
         return Omnipay::create($this->getGatewayName(), $this->getHttpClient())->getDefaultParameters();
     }
 
+    public function getSettingsFields(): array
+    {
+        return $this->getDefaultParameters();
+    }
+
     public function createGateway(array $settings): GatewayInterface
     {
         $gateway = Omnipay::create($this->getGatewayName(), $this->getHttpClient());

@@ -48,6 +48,28 @@ class BankTransferGateway extends OmnipayGateway
     }
 
     /**
+     * 取得銀行帳號池設定
+     *
+     * @return array{accounts: array, selection_mode: string}
+     */
+    protected function getBankAccountsConfig(): array
+    {
+        $settings = $this->settingsManager->getAllSettings(
+            $this->overrideSettings ? $this->settings : []
+        );
+
+        $bankAccounts = $settings['bank_accounts'] ?? [];
+        if (is_string($bankAccounts) && ! empty($bankAccounts)) {
+            $bankAccounts = json_decode($bankAccounts, true) ?: [];
+        }
+
+        return [
+            'accounts' => is_array($bankAccounts) ? $bankAccounts : [],
+            'selection_mode' => $settings['selection_mode'] ?? 'random',
+        ];
+    }
+
+    /**
      * 套用選中的帳號到設定
      *
      * @param  array  $settings  原始設定
@@ -55,20 +77,14 @@ class BankTransferGateway extends OmnipayGateway
      */
     protected function applySelectedAccount(array $settings)
     {
-        $bankAccounts = $settings['bank_accounts'] ?? [];
-
-        // 如果是 JSON 字串，解析為陣列
-        if (is_string($bankAccounts) && ! empty($bankAccounts)) {
-            $bankAccounts = json_decode($bankAccounts, true) ?: [];
-        }
+        $config = $this->getBankAccountsConfig();
 
         // 如果沒有帳號池，使用原本的單一帳號設定
-        if (empty($bankAccounts) || ! is_array($bankAccounts)) {
+        if (empty($config['accounts'])) {
             return $settings;
         }
 
-        $selectionMode = $settings['selection_mode'] ?? 'random';
-        $account = $this->selectAccount($bankAccounts, $selectionMode);
+        $account = $this->selectAccount($config['accounts'], $config['selection_mode']);
 
         if ($account) {
             $this->selectedAccount = $account;
@@ -147,17 +163,10 @@ class BankTransferGateway extends OmnipayGateway
      */
     protected function hasPaymentFields(): bool
     {
-        $settings = $this->settingsManager->getAllSettings($this->overrideSettings ? $this->settings : []);
-        $selectionMode = $settings['selection_mode'] ?? 'random';
-        $bankAccounts = $settings['bank_accounts'] ?? [];
-
-        // 如果是 JSON 字串，解析為陣列
-        if (is_string($bankAccounts) && ! empty($bankAccounts)) {
-            $bankAccounts = json_decode($bankAccounts, true) ?: [];
-        }
+        $config = $this->getBankAccountsConfig();
 
         // 用戶選擇模式且有多個帳號時，需要顯示付款欄位
-        return $selectionMode === 'user_choice' && count($bankAccounts) > 1;
+        return $config['selection_mode'] === 'user_choice' && count($config['accounts']) > 1;
     }
 
     /**
@@ -167,24 +176,14 @@ class BankTransferGateway extends OmnipayGateway
     {
         parent::payment_fields();
 
-        $settings = $this->settingsManager->getAllSettings($this->overrideSettings ? $this->settings : []);
-        $selectionMode = $settings['selection_mode'] ?? 'random';
+        $config = $this->getBankAccountsConfig();
 
-        if ($selectionMode !== 'user_choice') {
-            return;
-        }
-
-        $bankAccounts = $settings['bank_accounts'] ?? [];
-        if (is_string($bankAccounts) && ! empty($bankAccounts)) {
-            $bankAccounts = json_decode($bankAccounts, true) ?: [];
-        }
-
-        if (empty($bankAccounts) || ! is_array($bankAccounts)) {
+        if ($config['selection_mode'] !== 'user_choice' || empty($config['accounts'])) {
             return;
         }
 
         echo woocommerce_omnipay_get_template('checkout/bank-account-form.php', [
-            'accounts' => $bankAccounts,
+            'accounts' => $config['accounts'],
         ]);
     }
 

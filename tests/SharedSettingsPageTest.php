@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests;
 
+use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
+use WooCommerceOmnipay\Http\WordPressClient;
 use WooCommerceOmnipay\Settings\GatewaySettingsSection;
 use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
@@ -14,10 +16,11 @@ class SharedSettingsPageTest extends WP_UnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $httpClient = new WordPressClient;
         $this->page = new SharedSettingsPage([
             new GeneralSettingsSection,
-            new GatewaySettingsSection('ECPay'),
-            new GatewaySettingsSection('NewebPay'),
+            new GatewaySettingsSection((new DefaultGatewayAdapter('ECPay'))->setHttpClient($httpClient)),
+            new GatewaySettingsSection((new DefaultGatewayAdapter('NewebPay'))->setHttpClient($httpClient)),
         ]);
     }
 
@@ -123,8 +126,9 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_duplicate_gateways_are_deduplicated()
     {
-        $ecpaySection = new GatewaySettingsSection('ECPay');
-        $newebpaySection = new GatewaySettingsSection('NewebPay');
+        $httpClient = new WordPressClient;
+        $ecpaySection = new GatewaySettingsSection((new DefaultGatewayAdapter('ECPay'))->setHttpClient($httpClient));
+        $newebpaySection = new GatewaySettingsSection((new DefaultGatewayAdapter('NewebPay'))->setHttpClient($httpClient));
 
         // 傳入重複的 section (same key)
         $page = new SharedSettingsPage([
@@ -142,9 +146,10 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_save_settings_handles_checkbox_field()
     {
+        $httpClient = new WordPressClient;
         $page = new SharedSettingsPage([
             new GeneralSettingsSection,
-            new GatewaySettingsSection('ECPay'),
+            new GatewaySettingsSection((new DefaultGatewayAdapter('ECPay'))->setHttpClient($httpClient)),
         ]);
         $page->register();
 

@@ -83,14 +83,23 @@ add_action('plugins_loaded', 'woocommerce_omnipay_init');
 function woocommerce_omnipay_register_shared_settings()
 {
     $config = woocommerce_omnipay_get_config();
-    $gatewayNames = array_unique(array_filter(array_column($config['gateways'], 'gateway')));
+    $registry = new \WooCommerceOmnipay\GatewayRegistry($config);
 
     $sections = [new \WooCommerceOmnipay\Settings\GeneralSettingsSection];
 
-    foreach ($gatewayNames as $name) {
+    // 取得不重複的 gateway 配置
+    $seen = [];
+    foreach ($config['gateways'] as $gatewayConfig) {
+        $name = $gatewayConfig['gateway'] ?? '';
+        if (empty($name) || isset($seen[$name]) || ! $registry->isAvailable($name)) {
+            continue;
+        }
+        $seen[$name] = true;
+
+        $adapter = $registry->resolveAdapter($gatewayConfig);
         $sections[] = $name === 'BankTransfer'
-            ? new \WooCommerceOmnipay\Settings\BankTransferSettingsSection
-            : new \WooCommerceOmnipay\Settings\GatewaySettingsSection($name);
+            ? new \WooCommerceOmnipay\Settings\BankTransferSettingsSection($adapter)
+            : new \WooCommerceOmnipay\Settings\GatewaySettingsSection($adapter);
     }
 
     $page = new \WooCommerceOmnipay\SharedSettingsPage($sections);

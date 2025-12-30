@@ -177,7 +177,7 @@ class OmnipayGateway extends WC_Payment_Gateway
 
         // 從 Omnipay gateway 取得參數並產生欄位（根據配置決定是否顯示）
         if ($this->overrideSettings) {
-            $omnipayFields = $this->settingsManager->buildFormFields($this->adapter->getDefaultParameters());
+            $omnipayFields = $this->settingsManager->buildFormFields($this->adapter->getSettingsFields());
             $this->form_fields = array_merge($this->form_fields, $omnipayFields);
         }
 

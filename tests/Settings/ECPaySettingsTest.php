@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests\Settings;
 
+use WooCommerceOmnipay\Adapters\DefaultGatewayAdapter;
+use WooCommerceOmnipay\Http\WordPressClient;
 use WooCommerceOmnipay\Settings\GatewaySettingsSection;
 use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
@@ -17,9 +19,10 @@ class ECPaySettingsTest extends WP_UnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $httpClient = new WordPressClient;
         $this->page = new SharedSettingsPage([
             new GeneralSettingsSection,
-            new GatewaySettingsSection('ECPay'),
+            new GatewaySettingsSection((new DefaultGatewayAdapter('ECPay'))->setHttpClient($httpClient)),
         ]);
     }
 

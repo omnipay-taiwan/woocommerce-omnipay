@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Settings;
 
+use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
+
 /**
  * BankTransfer Settings Section
  *
@@ -10,22 +12,14 @@ namespace WooCommerceOmnipay\Settings;
  */
 class BankTransferSettingsSection extends GatewaySettingsSection
 {
-    public function __construct(string $name = 'BankTransfer')
+    public function __construct(GatewayAdapter $adapter)
     {
-        parent::__construct($name);
+        parent::__construct($adapter);
     }
 
     public function getSectionLabel(): string
     {
         return __('Bank Transfer', 'woocommerce-omnipay');
-    }
-
-    protected function getParameters(): array
-    {
-        return [
-            'bank_accounts' => [],
-            'selection_mode' => 'random',
-        ];
     }
 
     public function registerFieldHooks(): void

@@ -2,6 +2,7 @@
 
 namespace WooCommerceOmnipay\Tests\Settings;
 
+use WooCommerceOmnipay\Adapters\BankTransferAdapter;
 use WooCommerceOmnipay\Settings\BankTransferSettingsSection;
 use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
@@ -19,7 +20,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
         parent::setUp();
         $this->page = new SharedSettingsPage([
             new GeneralSettingsSection,
-            new BankTransferSettingsSection,
+            new BankTransferSettingsSection(new BankTransferAdapter),
         ]);
     }
 

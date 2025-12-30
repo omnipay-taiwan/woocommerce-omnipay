@@ -2,8 +2,7 @@
 
 namespace WooCommerceOmnipay\Settings;
 
-use Omnipay\Omnipay;
-use WooCommerceOmnipay\Http\WordPressClient;
+use WooCommerceOmnipay\Adapters\Contracts\GatewayAdapter;
 use WooCommerceOmnipay\Settings\Contracts\SettingsSectionProvider;
 use WooCommerceOmnipay\WordPress\SettingsManager;
 
@@ -14,6 +13,8 @@ use WooCommerceOmnipay\WordPress\SettingsManager;
  */
 class GatewaySettingsSection implements SettingsSectionProvider
 {
+    protected GatewayAdapter $adapter;
+
     protected string $name;
 
     protected string $optionKey;
@@ -23,10 +24,11 @@ class GatewaySettingsSection implements SettingsSectionProvider
      */
     private const GENERAL_FIELDS = ['testMode', 'transaction_id_prefix', 'allow_resubmit'];
 
-    public function __construct(string $name)
+    public function __construct(GatewayAdapter $adapter)
     {
-        $this->name = $name;
-        $this->optionKey = SettingsManager::getOptionKey($name);
+        $this->adapter = $adapter;
+        $this->name = $adapter->getGatewayName();
+        $this->optionKey = SettingsManager::getOptionKey($this->name);
     }
 
     public function getSectionKey(): string
@@ -78,11 +80,11 @@ class GatewaySettingsSection implements SettingsSectionProvider
     }
 
     /**
-     * Get parameters from Omnipay gateway
+     * Get parameters from adapter
      */
     protected function getParameters(): array
     {
-        return Omnipay::create($this->name, new WordPressClient)->getDefaultParameters();
+        return $this->adapter->getSettingsFields();
     }
 
     /**
