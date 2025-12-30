@@ -47,7 +47,8 @@ class GatewaySettingsSection implements SettingsSectionProvider
 
     public function getSectionLabel(): string
     {
-        return $this->name;
+        // translators: %s is the gateway name (e.g., ECPay, NewebPay, YiPay, Dummy)
+        return __($this->name, 'woocommerce-omnipay');
     }
 
     public function getSettings(): array
