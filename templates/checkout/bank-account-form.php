@@ -10,9 +10,9 @@ if (empty($accounts)) {
     return;
 }
 ?>
-<div class="form-row form-row-wide omnipay-bank-account-selection">
+<p class="form-row form-row-wide">
     <label><?php esc_html_e('Select Bank Account', 'woocommerce-omnipay'); ?></label>
-    <ul class="omnipay-bank-accounts-list">
+    <select id="bank_account_index" name="bank_account_index" class="select">
     <?php foreach ($accounts as $index => $account) { ?>
         <?php
         $bankCode = $account['bank_code'] ?? '';
@@ -23,16 +23,8 @@ if (empty($accounts)) {
         if ($accountNumber) {
             $label .= '-'.$accountNumber;
         }
-        $inputId = 'bank_account_'.$index;
         ?>
-        <li>
-            <input type="radio"
-                   id="<?php echo esc_attr($inputId); ?>"
-                   name="bank_account_index"
-                   value="<?php echo esc_attr($index); ?>"
-                   <?php checked($index, 0); ?> />
-            <label for="<?php echo esc_attr($inputId); ?>"><?php echo esc_html($label); ?></label>
-        </li>
+        <option value="<?php echo esc_attr($index); ?>"><?php echo esc_html($label); ?></option>
     <?php } ?>
-    </ul>
-</div>
+    </select>
+</p>
