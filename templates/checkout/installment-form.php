@@ -17,10 +17,11 @@ $available_installments = array_filter($installments, function ($period) use ($t
     return true;
 });
 ?>
-<p><?php echo esc_html(_x('Number of periods', 'Checkout info', 'woocommerce-omnipay')); ?>
-<select name="omnipay_installment">
-<?php foreach ($available_installments as $period) { ?>
-    <option value="<?php echo esc_attr($period); ?>"><?php echo wp_kses_post($period); ?></option>
-<?php } ?>
-</select>
+<p class="form-row form-row-wide">
+    <label><?php echo esc_html(_x('Number of periods', 'Checkout info', 'woocommerce-omnipay')); ?></label>
+    <select name="omnipay_installment" class="select">
+    <?php foreach ($available_installments as $period) { ?>
+        <option value="<?php echo esc_attr($period); ?>"><?php echo wp_kses_post($period); ?></option>
+    <?php } ?>
+    </select>
 </p>

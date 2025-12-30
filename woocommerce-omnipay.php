@@ -83,8 +83,17 @@ add_action('plugins_loaded', 'woocommerce_omnipay_init');
 function woocommerce_omnipay_register_shared_settings()
 {
     $config = woocommerce_omnipay_get_config();
+    $gatewayNames = array_unique(array_filter(array_column($config['gateways'], 'gateway')));
 
-    $page = new \WooCommerceOmnipay\SharedSettingsPage($config['gateways']);
+    $sections = [new \WooCommerceOmnipay\Settings\GeneralSettingsSection];
+
+    foreach ($gatewayNames as $name) {
+        $sections[] = $name === 'BankTransfer'
+            ? new \WooCommerceOmnipay\Settings\BankTransferSettingsSection
+            : new \WooCommerceOmnipay\Settings\GatewaySettingsSection($name);
+    }
+
+    $page = new \WooCommerceOmnipay\SharedSettingsPage($sections);
     $page->register();
 }
 
@@ -98,18 +107,10 @@ function woocommerce_omnipay_register_scripts()
         return;
     }
 
-    // Register and enqueue payment info styles
-    wp_enqueue_style(
-        'woocommerce-omnipay-payment-info',
-        WOOCOMMERCE_OMNIPAY_PLUGIN_URL.'assets/css/payment-info.css',
-        [],
-        WOOCOMMERCE_OMNIPAY_VERSION
-    );
-
-    // Register JsBarcode from CDN
+    // Register JsBarcode
     wp_register_script(
         'jsbarcode',
-        'https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js',
+        WOOCOMMERCE_OMNIPAY_PLUGIN_URL.'assets/js/vendor/jsbarcode.min.js',
         [],
         '3.11.6',
         true

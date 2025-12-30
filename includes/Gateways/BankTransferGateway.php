@@ -344,17 +344,22 @@ class BankTransferGateway extends OmnipayGateway
         $last5 = isset($_POST['remittance_last5']) ? sanitize_text_field($_POST['remittance_last5']) : '';
         $nonce = isset($_POST['nonce']) ? sanitize_text_field($_POST['nonce']) : '';
 
+        // 取得訂單以便取得 redirect URL
+        $order = $this->orders->findById($order_id);
+        $redirect_url = $order ? $order->get_view_order_url() : wc_get_page_permalink('myaccount');
+
         // 驗證 nonce
         if (! wp_verify_nonce($nonce, 'omnipay_remittance_nonce')) {
-            $this->sendJsonResponse(false, __('Security verification failed', 'woocommerce-omnipay'));
+            wc_add_notice(__('Security verification failed', 'woocommerce-omnipay'), 'error');
+            $this->redirectAndExit($redirect_url);
 
             return;
         }
 
         // 驗證訂單
-        $order = $this->orders->findById($order_id);
         if (! $order || $order->get_order_key() !== $order_key) {
-            $this->sendJsonResponse(false, __('Order verification failed', 'woocommerce-omnipay'));
+            wc_add_notice(__('Order verification failed', 'woocommerce-omnipay'), 'error');
+            $this->redirectAndExit($redirect_url);
 
             return;
         }
@@ -362,10 +367,11 @@ class BankTransferGateway extends OmnipayGateway
         // 驗證格式（必須是指定位數的數字）
         $pattern = sprintf('/^\d{%d}$/', Constants::REMITTANCE_LAST_DIGITS);
         if (! preg_match($pattern, $last5)) {
-            $this->sendJsonResponse(
-                false,
-                sprintf(__('Please enter %d digits', 'woocommerce-omnipay'), Constants::REMITTANCE_LAST_DIGITS)
+            wc_add_notice(
+                sprintf(__('Please enter %d digits', 'woocommerce-omnipay'), Constants::REMITTANCE_LAST_DIGITS),
+                'error'
             );
+            $this->redirectAndExit($redirect_url);
 
             return;
         }
@@ -373,24 +379,21 @@ class BankTransferGateway extends OmnipayGateway
         // 儲存
         $this->orders->saveRemittanceLast5($order, $last5);
 
-        $this->sendJsonResponse(true, __('Successfully submitted', 'woocommerce-omnipay'));
+        wc_add_notice(__('Successfully submitted', 'woocommerce-omnipay'), 'success');
+
+        // 從 referer 取得原始頁面 URL，優先導回原頁面
+        $referer = wp_get_referer();
+        $this->redirectAndExit($referer ?: $redirect_url);
     }
 
     /**
-     * 發送 JSON 回應
+     * 執行 redirect 並終止程式
      *
-     * @param  bool  $success
-     * @param  string  $message
+     * @param  string  $url
      */
-    protected function sendJsonResponse($success, $message)
+    protected function redirectAndExit($url)
     {
-        if (! headers_sent()) {
-            header('Content-Type: application/json');
-        }
-        echo json_encode([
-            'success' => $success,
-            'message' => $message,
-        ]);
+        wp_safe_redirect($url);
         Helper::terminate();
     }
 }

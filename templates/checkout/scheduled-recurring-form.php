@@ -65,53 +65,55 @@ $parsePeriodPoint = function ($periodType, $periodPoint) use ($weekdayLabels) {
     return $periodPoint;
 };
 ?>
-<select id="omnipay_period" name="omnipay_period">
-<?php foreach ($periods as $period) { ?>
-    <?php
-    // Build value from period fields
-    $values = [];
-    foreach ($periodFields as $field) {
-        $values[] = $period[$field] ?? '';
-    }
-    $value = implode('_', $values);
+<p class="form-row form-row-wide">
+    <label><?php esc_html_e('Payment Schedule', 'woocommerce-omnipay'); ?></label>
+    <select id="omnipay_period" name="omnipay_period" class="select">
+    <?php foreach ($periods as $period) { ?>
+        <?php
+        // Build value from period fields
+        $values = [];
+        foreach ($periodFields as $field) {
+            $values[] = $period[$field] ?? '';
+        }
+        $value = implode('_', $values);
 
-    // NewebPay format
-    $periodType = $period['periodType'] ?? '';
-    $periodPoint = $period['periodPoint'] ?? '';
-    $periodTimes = $period['periodTimes'] ?? 0;
-    $periodStartType = $period['periodStartType'] ?? '2';
+        // NewebPay format
+        $periodType = $period['periodType'] ?? '';
+        $periodPoint = $period['periodPoint'] ?? '';
+        $periodTimes = $period['periodTimes'] ?? 0;
+        $periodStartType = $period['periodStartType'] ?? '2';
 
-    // Parse periodPoint for display
-    $pointDisplay = $parsePeriodPoint($periodType, $periodPoint);
+        // Parse periodPoint for display
+        $pointDisplay = $parsePeriodPoint($periodType, $periodPoint);
 
-    // Build period description
-    if ($periodType === 'D') {
-        // Daily: 每 2 天扣款
-        $periodDesc = $pointDisplay;
-    } elseif ($periodType === 'Y') {
-        // Yearly: 每年 3/15 扣款
-        $periodDesc = sprintf(__('charge on %s every year', 'woocommerce-omnipay'), $pointDisplay);
-    } elseif ($periodType === 'M') {
-        // Monthly: 每月 15 日扣款
-        $periodDesc = sprintf(__('charge on day %s every month', 'woocommerce-omnipay'), $pointDisplay);
-    } else {
-        // Weekly: 每週一扣款
-        $periodDesc = sprintf(__('charge every %s', 'woocommerce-omnipay'), $pointDisplay);
-    }
+        // Build period description
+        if ($periodType === 'D') {
+            // Daily: 每 2 天扣款
+            $periodDesc = $pointDisplay;
+        } elseif ($periodType === 'Y') {
+            // Yearly: 每年 3/15 扣款
+            $periodDesc = sprintf(__('charge on %s every year', 'woocommerce-omnipay'), $pointDisplay);
+        } elseif ($periodType === 'M') {
+            // Monthly: 每月 15 日扣款
+            $periodDesc = sprintf(__('charge on day %s every month', 'woocommerce-omnipay'), $pointDisplay);
+        } else {
+            // Weekly: 每週一扣款
+            $periodDesc = sprintf(__('charge every %s', 'woocommerce-omnipay'), $pointDisplay);
+        }
 
-    // Final label: 金額 / 週期描述，共 次數 次
-    $label = sprintf(
-        __('%s / %s, %s times total', 'woocommerce-omnipay'),
-        wc_price($total),
-        esc_html($periodDesc),
-        esc_html($periodTimes)
-    );
-    ?>
-    <option value="<?php echo esc_attr($value); ?>"><?php echo wp_kses_post($label); ?></option>
-<?php } ?>
-</select>
-<div id="omnipay_period_info"></div>
-<hr style="margin: 12px 0px;background-color: #eeeeee;">
-<p style="font-size: 0.8em;color: #c9302c;">
-    <?php echo wp_kses_post($warningMessage); ?>
+        // Final label: 金額 / 週期描述，共 次數 次
+        $label = sprintf(
+            __('%s / %s, %s times total', 'woocommerce-omnipay'),
+            wc_price($total),
+            esc_html($periodDesc),
+            esc_html($periodTimes)
+        );
+        ?>
+        <option value="<?php echo esc_attr($value); ?>"><?php echo wp_kses_post($label); ?></option>
+    <?php } ?>
+    </select>
 </p>
+<div id="omnipay_period_info"></div>
+<div class="woocommerce-info">
+    <?php echo wp_kses_post($warningMessage); ?>
+</div>

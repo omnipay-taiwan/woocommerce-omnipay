@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests\Settings;
 
+use WooCommerceOmnipay\Settings\BankTransferSettingsSection;
+use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
 use WP_UnitTestCase;
 
@@ -16,7 +18,8 @@ class BankTransferSettingsTest extends WP_UnitTestCase
     {
         parent::setUp();
         $this->page = new SharedSettingsPage([
-            ['gateway' => 'BankTransfer'],
+            new GeneralSettingsSection,
+            new BankTransferSettingsSection,
         ]);
     }
 
@@ -28,7 +31,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
 
     public function test_get_settings_includes_bank_accounts_and_selection_mode()
     {
-        $settings = $this->page->get_settings('banktransfer');
+        $settings = $this->page->getSettings('banktransfer');
 
         $fieldIds = array_column($settings, 'id');
 
@@ -40,7 +43,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
 
     public function test_bank_accounts_field_uses_table_type()
     {
-        $settings = $this->page->get_settings('banktransfer');
+        $settings = $this->page->getSettings('banktransfer');
 
         $bankAccountsField = null;
         foreach ($settings as $field) {
@@ -74,8 +77,8 @@ class BankTransferSettingsTest extends WP_UnitTestCase
             ],
         ];
 
-        // 觸發儲存
-        $this->page->save_bank_accounts_table([
+        // 透過 action hook 觸發儲存
+        do_action('woocommerce_update_option_bank_accounts_table', [
             'id' => 'woocommerce_omnipay_banktransfer_shared_settings[bank_accounts]',
             'type' => 'bank_accounts_table',
         ]);
@@ -109,7 +112,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
             ],
         ];
 
-        $this->page->save_bank_accounts_table([
+        do_action('woocommerce_update_option_bank_accounts_table', [
             'id' => 'woocommerce_omnipay_banktransfer_shared_settings[bank_accounts]',
             'type' => 'bank_accounts_table',
         ]);
@@ -119,6 +122,23 @@ class BankTransferSettingsTest extends WP_UnitTestCase
         // 空帳號應被過濾
         $this->assertCount(1, $savedSettings['bank_accounts']);
         $this->assertEquals('812', $savedSettings['bank_accounts'][0]['bank_code']);
+    }
+
+    public function test_save_bank_accounts_table_skips_invalid_option_id()
+    {
+        $this->page->register();
+
+        // 先確認選項不存在
+        delete_option('invalid_format_without_brackets');
+
+        // 傳入無效的 option ID 格式
+        do_action('woocommerce_update_option_bank_accounts_table', [
+            'id' => 'invalid_format_without_brackets',
+            'type' => 'bank_accounts_table',
+        ]);
+
+        // 應該不會建立任何選項
+        $this->assertFalse(get_option('invalid_format_without_brackets'));
     }
 
     public function test_output_bank_accounts_table_reads_from_shared_settings()
@@ -137,9 +157,9 @@ class BankTransferSettingsTest extends WP_UnitTestCase
 
         $this->page->register();
 
-        // 捕獲輸出
+        // 透過 action hook 捕獲輸出
         ob_start();
-        $this->page->output_bank_accounts_table([
+        do_action('woocommerce_admin_field_bank_accounts_table', [
             'id' => 'woocommerce_omnipay_banktransfer_shared_settings[bank_accounts]',
             'type' => 'bank_accounts_table',
             'title' => 'Bank Accounts',
@@ -180,7 +200,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
         ];
 
         // 觸發儲存
-        $this->page->save_settings();
+        $this->page->saveSettings();
 
         // 驗證儲存結果
         $savedSettings = get_option('woocommerce_omnipay_banktransfer_shared_settings', []);
@@ -210,8 +230,8 @@ class BankTransferSettingsTest extends WP_UnitTestCase
             'selection_mode' => 'user_choice',
         ];
 
-        // 透過 save_settings() 完整流程儲存
-        $this->page->save_settings();
+        // 透過 saveSettings() 完整流程儲存
+        $this->page->saveSettings();
 
         $savedSettings = get_option('woocommerce_omnipay_banktransfer_shared_settings', []);
 
@@ -233,7 +253,7 @@ class BankTransferSettingsTest extends WP_UnitTestCase
         $this->page->register();
 
         ob_start();
-        $this->page->output_bank_accounts_table([
+        do_action('woocommerce_admin_field_bank_accounts_table', [
             'id' => 'woocommerce_omnipay_banktransfer_shared_settings[bank_accounts]',
             'type' => 'bank_accounts_table',
             'title' => 'Bank Accounts',

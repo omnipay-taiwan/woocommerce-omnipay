@@ -22,16 +22,17 @@ $barcode_fields = [
     '_omnipay_barcode_3',
 ];
 ?>
-<section class="omnipay-payment-info">
-    <h2><?php esc_html_e('Payment Information', 'woocommerce-omnipay'); ?></h2>
-    <table class="woocommerce-table">
+<section class="woocommerce-order-details">
+    <h2 class="woocommerce-order-details__title"><?php esc_html_e('Payment Information', 'woocommerce-omnipay'); ?></h2>
+    <table class="woocommerce-table woocommerce-table--order-details shop_table order_details">
+        <tbody>
         <?php foreach ($payment_info as $meta_key => $value) { ?>
             <?php if (isset($labels[$meta_key])) { ?>
                 <tr>
-                    <th><?php echo esc_html($labels[$meta_key]); ?></th>
+                    <th scope="row"><?php echo esc_html($labels[$meta_key]); ?></th>
                     <td>
                         <?php if (in_array($meta_key, $barcode_fields, true)) { ?>
-                            <svg class="omnipay-barcode" data-barcode="<?php echo esc_attr($value); ?>" data-format="CODE39"></svg>
+                            <svg class="omnipay-barcode" style="display:block;margin:0 auto" data-barcode="<?php echo esc_attr($value); ?>" data-format="CODE39"></svg>
                             <noscript><?php echo esc_html($value); ?></noscript>
                         <?php } else { ?>
                             <?php echo esc_html($value); ?>
@@ -40,5 +41,6 @@ $barcode_fields = [
                 </tr>
             <?php } ?>
         <?php } ?>
+        </tbody>
     </table>
 </section>

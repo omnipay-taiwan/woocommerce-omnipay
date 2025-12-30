@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests\Settings;
 
+use WooCommerceOmnipay\Settings\GatewaySettingsSection;
+use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
 use WP_UnitTestCase;
 
@@ -16,7 +18,8 @@ class ECPaySettingsTest extends WP_UnitTestCase
     {
         parent::setUp();
         $this->page = new SharedSettingsPage([
-            ['gateway' => 'ECPay'],
+            new GeneralSettingsSection,
+            new GatewaySettingsSection('ECPay'),
         ]);
     }
 
@@ -28,7 +31,7 @@ class ECPaySettingsTest extends WP_UnitTestCase
 
     public function test_get_settings_returns_omnipay_fields()
     {
-        $settings = $this->page->get_settings('ecpay');
+        $settings = $this->page->getSettings('ecpay');
 
         $fieldIds = array_column($settings, 'id');
 
@@ -39,7 +42,7 @@ class ECPaySettingsTest extends WP_UnitTestCase
 
     public function test_get_settings_excludes_general_fields()
     {
-        $settings = $this->page->get_settings('ecpay');
+        $settings = $this->page->getSettings('ecpay');
 
         $fieldIds = array_column($settings, 'id');
 
@@ -59,7 +62,7 @@ class ECPaySettingsTest extends WP_UnitTestCase
         $_GET['section'] = 'ecpay';
 
         ob_start();
-        $this->page->output_settings();
+        $this->page->outputSettings();
         $output = ob_get_clean();
 
         // 應該包含 ECPay 的欄位
@@ -69,7 +72,7 @@ class ECPaySettingsTest extends WP_UnitTestCase
 
     public function test_get_settings_creates_password_field_for_secret_keys()
     {
-        $settings = $this->page->get_settings('ecpay');
+        $settings = $this->page->getSettings('ecpay');
 
         $hashKeyField = null;
         $hashIVField = null;
@@ -92,7 +95,7 @@ class ECPaySettingsTest extends WP_UnitTestCase
 
     public function test_get_settings_creates_text_field_for_merchant_id()
     {
-        $settings = $this->page->get_settings('ecpay');
+        $settings = $this->page->getSettings('ecpay');
 
         $merchantIdField = null;
         foreach ($settings as $field) {

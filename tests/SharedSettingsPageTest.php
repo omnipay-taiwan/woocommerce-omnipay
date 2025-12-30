@@ -2,6 +2,8 @@
 
 namespace WooCommerceOmnipay\Tests;
 
+use WooCommerceOmnipay\Settings\GatewaySettingsSection;
+use WooCommerceOmnipay\Settings\GeneralSettingsSection;
 use WooCommerceOmnipay\SharedSettingsPage;
 use WP_UnitTestCase;
 
@@ -13,8 +15,9 @@ class SharedSettingsPageTest extends WP_UnitTestCase
     {
         parent::setUp();
         $this->page = new SharedSettingsPage([
-            ['gateway' => 'ECPay'],
-            ['gateway' => 'NewebPay'],
+            new GeneralSettingsSection,
+            new GatewaySettingsSection('ECPay'),
+            new GatewaySettingsSection('NewebPay'),
         ]);
     }
 
@@ -28,7 +31,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_adds_omnipay_tab_to_woocommerce_settings()
     {
-        $tabs = $this->page->add_tab([]);
+        $tabs = $this->page->addTab([]);
 
         $this->assertArrayHasKey('omnipay', $tabs);
         $this->assertEquals('Omnipay', $tabs['omnipay']);
@@ -36,7 +39,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_get_sections_returns_general_and_all_gateways()
     {
-        $sections = $this->page->get_sections();
+        $sections = $this->page->getSections();
 
         $this->assertArrayHasKey('', $sections);
         $this->assertArrayHasKey('ecpay', $sections);
@@ -48,14 +51,14 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_get_settings_returns_empty_for_unknown_section()
     {
-        $settings = $this->page->get_settings('unknown');
+        $settings = $this->page->getSettings('unknown');
 
         $this->assertEmpty($settings);
     }
 
     public function test_first_section_is_general()
     {
-        $sections = $this->page->get_sections();
+        $sections = $this->page->getSections();
 
         $firstKey = array_key_first($sections);
         $this->assertEquals('', $firstKey);
@@ -63,7 +66,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_get_settings_returns_general_settings()
     {
-        $settings = $this->page->get_settings('');
+        $settings = $this->page->getSettings('');
 
         $fieldIds = array_column($settings, 'id');
 
@@ -75,7 +78,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
     public function test_output_sections_renders_navigation()
     {
         ob_start();
-        $this->page->output_sections();
+        $this->page->outputSections();
         $output = ob_get_clean();
 
         // 驗證有 sections 導航
@@ -92,7 +95,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
         $_GET['section'] = 'ecpay';
 
         ob_start();
-        $this->page->output_sections();
+        $this->page->outputSections();
         $output = ob_get_clean();
 
         // 驗證 ECPay 有 current class
@@ -110,7 +113,7 @@ class SharedSettingsPageTest extends WP_UnitTestCase
         unset($_GET['section']);
 
         ob_start();
-        $this->page->output_settings();
+        $this->page->outputSettings();
         $output = ob_get_clean();
 
         // 應該包含通用設定的欄位
@@ -120,13 +123,18 @@ class SharedSettingsPageTest extends WP_UnitTestCase
 
     public function test_duplicate_gateways_are_deduplicated()
     {
+        $ecpaySection = new GatewaySettingsSection('ECPay');
+        $newebpaySection = new GatewaySettingsSection('NewebPay');
+
+        // 傳入重複的 section (same key)
         $page = new SharedSettingsPage([
-            ['gateway' => 'ECPay'],
-            ['gateway' => 'ECPay'], // 重複
-            ['gateway' => 'NewebPay'],
+            new GeneralSettingsSection,
+            $ecpaySection,
+            $ecpaySection, // 重複 - 會被覆蓋
+            $newebpaySection,
         ]);
 
-        $sections = $page->get_sections();
+        $sections = $page->getSections();
 
         // 應該只有 General + ECPay + NewebPay = 3 個 sections
         $this->assertCount(3, $sections);
@@ -135,7 +143,8 @@ class SharedSettingsPageTest extends WP_UnitTestCase
     public function test_save_settings_handles_checkbox_field()
     {
         $page = new SharedSettingsPage([
-            ['gateway' => 'ECPay'],
+            new GeneralSettingsSection,
+            new GatewaySettingsSection('ECPay'),
         ]);
         $page->register();
 
@@ -145,31 +154,11 @@ class SharedSettingsPageTest extends WP_UnitTestCase
             'allow_resubmit' => '1', // checkbox 可能是 '1' 或 'yes'
         ];
 
-        $page->save_settings();
+        $page->saveSettings();
 
         $savedSettings = get_option('woocommerce_omnipay_general_settings', []);
 
         $this->assertEquals('yes', $savedSettings['testMode']);
         $this->assertEquals('yes', $savedSettings['allow_resubmit']);
-    }
-
-    public function test_save_bank_accounts_table_skips_invalid_option_id()
-    {
-        $page = new SharedSettingsPage([
-            ['gateway' => 'BankTransfer'],
-        ]);
-        $page->register();
-
-        // 先確認選項不存在
-        delete_option('invalid_format_without_brackets');
-
-        // 傳入無效的 option ID 格式
-        $page->save_bank_accounts_table([
-            'id' => 'invalid_format_without_brackets',
-            'type' => 'bank_accounts_table',
-        ]);
-
-        // 應該不會建立任何選項
-        $this->assertFalse(get_option('invalid_format_without_brackets'));
     }
 }

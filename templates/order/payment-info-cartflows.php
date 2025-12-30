@@ -31,7 +31,7 @@ $barcode_fields = [
             <div class="wcf-ic-review-customer__content">
                 <?php if (in_array($meta_key, $barcode_fields, true)) { ?>
                     <p>
-                        <svg class="omnipay-barcode" data-barcode="<?php echo esc_attr($value); ?>" data-format="CODE39"></svg>
+                        <svg class="omnipay-barcode" style="display:block;margin:0 auto" data-barcode="<?php echo esc_attr($value); ?>" data-format="CODE39"></svg>
                         <noscript><?php echo esc_html($value); ?></noscript>
                     </p>
                 <?php } else { ?>

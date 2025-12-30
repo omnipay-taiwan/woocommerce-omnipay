@@ -128,7 +128,7 @@ class BankTransferTest extends TestCase
         $output = $this->gateway->getPaymentInfoOutput($order);
 
         // 驗證付款資訊區塊
-        $this->assertStringContainsString('omnipay-payment-info', $output);
+        $this->assertStringContainsString('woocommerce-order-details', $output);
         $this->assertStringContainsString('Payment Information', $output);
         $this->assertStringContainsString('012-1234567890', $output);
 
@@ -151,9 +151,12 @@ class BankTransferTest extends TestCase
         // 驗證付款資訊
         $this->assertStringContainsString('012-1234567890', $output);
 
-        // 驗證已提交的匯款帳號後5碼顯示
+        // 驗證已提交的匯款帳號後5碼顯示在付款資訊中
         $this->assertStringContainsString('12345', $output);
-        $this->assertStringContainsString('submitted', $output);
+        $this->assertStringContainsString('Last 5 Digits of Remittance Account', $output);
+
+        // 驗證 remittance form 不再顯示（避免重複）
+        $this->assertStringNotContainsString('Remittance Confirmation', $output);
     }
 
     // ==================== 匯款帳號後5碼 ====================
@@ -172,12 +175,19 @@ class BankTransferTest extends TestCase
             'nonce' => wp_create_nonce('omnipay_remittance_nonce'),
         ];
 
-        ob_start();
-        $this->gateway->handleRemittance();
-        $response = json_decode(ob_get_clean(), true);
+        // 禁用 redirect 和 exit 以便測試
+        add_filter('wp_redirect', '__return_false');
+        add_filter('woocommerce_omnipay_should_exit', '__return_false');
+        wc_clear_notices();
 
-        $this->assertTrue($response['success']);
+        $this->gateway->handleRemittance();
+
+        // 驗證資料已儲存
         $this->assertEquals('12345', wc_get_order($order->get_id())->get_meta('_omnipay_remittance_last5'));
+
+        // 驗證成功訊息
+        $notices = wc_get_notices('success');
+        $this->assertNotEmpty($notices);
     }
 
     public function test_submit_remittance_last5_validates_format()
@@ -193,11 +203,16 @@ class BankTransferTest extends TestCase
             'nonce' => wp_create_nonce('omnipay_remittance_nonce'),
         ];
 
-        ob_start();
-        $this->gateway->handleRemittance();
-        $response = json_decode(ob_get_clean(), true);
+        // 禁用 redirect 和 exit 以便測試
+        add_filter('wp_redirect', '__return_false');
+        add_filter('woocommerce_omnipay_should_exit', '__return_false');
+        wc_clear_notices();
 
-        $this->assertFalse($response['success']);
+        $this->gateway->handleRemittance();
+
+        // 驗證錯誤訊息
+        $notices = wc_get_notices('error');
+        $this->assertNotEmpty($notices);
     }
 
     public function test_submit_remittance_last5_rejects_invalid_key()
@@ -213,11 +228,16 @@ class BankTransferTest extends TestCase
             'nonce' => wp_create_nonce('omnipay_remittance_nonce'),
         ];
 
-        ob_start();
-        $this->gateway->handleRemittance();
-        $response = json_decode(ob_get_clean(), true);
+        // 禁用 redirect 和 exit 以便測試
+        add_filter('wp_redirect', '__return_false');
+        add_filter('woocommerce_omnipay_should_exit', '__return_false');
+        wc_clear_notices();
 
-        $this->assertFalse($response['success']);
+        $this->gateway->handleRemittance();
+
+        // 驗證錯誤訊息
+        $notices = wc_get_notices('error');
+        $this->assertNotEmpty($notices);
     }
 
     public function test_submit_remittance_last5_rejects_invalid_nonce()
@@ -233,12 +253,16 @@ class BankTransferTest extends TestCase
             'nonce' => 'invalid_nonce',
         ];
 
-        ob_start();
-        $this->gateway->handleRemittance();
-        $response = json_decode(ob_get_clean(), true);
+        // 禁用 redirect 和 exit 以便測試
+        add_filter('wp_redirect', '__return_false');
+        add_filter('woocommerce_omnipay_should_exit', '__return_false');
+        wc_clear_notices();
 
-        $this->assertFalse($response['success']);
-        $this->assertStringContainsString('Security', $response['message']);
+        $this->gateway->handleRemittance();
+
+        // 驗證錯誤訊息
+        $notices = wc_get_notices('error');
+        $this->assertNotEmpty($notices);
     }
 
     // ==================== 帳號池測試 ====================

@@ -1,0 +1,148 @@
+<?php
+
+namespace WooCommerceOmnipay\Settings;
+
+use Omnipay\Omnipay;
+use WooCommerceOmnipay\Http\WordPressClient;
+use WooCommerceOmnipay\Settings\Contracts\SettingsSectionProvider;
+use WooCommerceOmnipay\WordPress\SettingsManager;
+
+/**
+ * Gateway Settings Section
+ *
+ * Provides settings for a specific gateway.
+ */
+class GatewaySettingsSection implements SettingsSectionProvider
+{
+    protected string $name;
+
+    protected string $optionKey;
+
+    /**
+     * Fields to exclude from gateway settings (handled in General Settings)
+     */
+    private const GENERAL_FIELDS = ['testMode', 'transaction_id_prefix', 'allow_resubmit'];
+
+    public function __construct(string $name)
+    {
+        $this->name = $name;
+        $this->optionKey = SettingsManager::getOptionKey($name);
+    }
+
+    public function getSectionKey(): string
+    {
+        return strtolower($this->name);
+    }
+
+    public function getSectionLabel(): string
+    {
+        return $this->name;
+    }
+
+    public function getSettings(): array
+    {
+        $fields = [
+            [
+                'title' => sprintf(__('%s Shared Settings', 'woocommerce-omnipay'), $this->name),
+                'type' => 'title',
+                'desc' => sprintf(
+                    __('Configure %s shared parameters. These settings apply to all %s payment methods.', 'woocommerce-omnipay'),
+                    $this->name,
+                    $this->name
+                ),
+                'id' => 'omnipay_'.$this->getSectionKey().'_options',
+            ],
+        ];
+
+        $parameters = $this->getParameters();
+
+        foreach ($parameters as $key => $defaultValue) {
+            if (in_array($key, self::GENERAL_FIELDS, true)) {
+                continue;
+            }
+
+            $fields[] = $this->createField($key, $defaultValue);
+        }
+
+        $fields[] = [
+            'type' => 'sectionend',
+            'id' => 'omnipay_'.$this->getSectionKey().'_options',
+        ];
+
+        return $fields;
+    }
+
+    public function registerFieldHooks(): void
+    {
+        // No custom field types
+    }
+
+    /**
+     * Get parameters from Omnipay gateway
+     */
+    protected function getParameters(): array
+    {
+        return Omnipay::create($this->name, new WordPressClient)->getDefaultParameters();
+    }
+
+    /**
+     * Create a field configuration
+     */
+    protected function createField(string $key, $defaultValue): array
+    {
+        $savedSettings = get_option($this->optionKey, []);
+        $savedValue = $savedSettings[$key] ?? null;
+
+        $field = [
+            'title' => ucwords(str_replace('_', ' ', $key)),
+            'id' => $this->optionKey.'['.$key.']',
+            'desc_tip' => true,
+        ];
+
+        // Handle boolean
+        if (is_bool($defaultValue)) {
+            $field['type'] = 'checkbox';
+            $field['default'] = $defaultValue ? 'yes' : 'no';
+            $field['value'] = $savedValue ?? ($defaultValue ? 'yes' : 'no');
+            $field['desc'] = sprintf('Omnipay parameter: %s', $key);
+
+            return $field;
+        }
+
+        // Handle array (textarea with JSON)
+        if (is_array($defaultValue)) {
+            $field['type'] = 'textarea';
+            $field['default'] = json_encode($defaultValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            $field['value'] = $savedValue !== null
+                ? (is_array($savedValue) ? json_encode($savedValue, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $savedValue)
+                : $field['default'];
+            $field['desc'] = sprintf('Omnipay parameter: %s (JSON format)', $key);
+            $field['css'] = 'min-height: 100px;';
+
+            return $field;
+        }
+
+        // Text field (default)
+        $field['type'] = 'text';
+        $field['default'] = (string) $defaultValue;
+        $field['value'] = $savedValue ?? (string) $defaultValue;
+        $field['desc'] = sprintf('Omnipay parameter: %s', $key);
+
+        // Password field for sensitive keys
+        if ($this->isSensitiveField($key)) {
+            $field['type'] = 'password';
+        }
+
+        return $field;
+    }
+
+    /**
+     * Check if field should be a password field
+     */
+    protected function isSensitiveField(string $key): bool
+    {
+        return stripos($key, 'key') !== false
+            || stripos($key, 'iv') !== false
+            || stripos($key, 'secret') !== false;
+    }
+}
