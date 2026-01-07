@@ -23,8 +23,10 @@ define('WOOCOMMERCE_OMNIPAY_PLUGIN_FILE', __FILE__);
 define('WOOCOMMERCE_OMNIPAY_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WOOCOMMERCE_OMNIPAY_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-// Load Composer autoloader
-if (file_exists(__DIR__.'/vendor/autoload.php')) {
+// Load Composer autoloader (vendor-prefixed for release, vendor for development)
+if (file_exists(__DIR__.'/vendor-prefixed/autoload.php')) {
+    require_once __DIR__.'/vendor-prefixed/autoload.php';
+} elseif (file_exists(__DIR__.'/vendor/autoload.php')) {
     require_once __DIR__.'/vendor/autoload.php';
 }
 
