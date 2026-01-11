@@ -1,0 +1,13 @@
+# Exclude from git archive / composer archive
+/.github export-ignore
+/tests export-ignore
+/bin export-ignore
+/.gitignore export-ignore
+/.gitattributes export-ignore
+/phpunit.xml export-ignore
+/phpunit.xml.dist export-ignore
+/composer.lock export-ignore
+/.phpunit.cache export-ignore
+/.phpunit.result.cache export-ignore
+/lefthook.yml export-ignore
+/pint.json export-ignore
