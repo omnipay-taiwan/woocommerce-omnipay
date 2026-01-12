@@ -1,11 +1,11 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\ECPay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\ECPay;
 
-use Recca0120\WooCommerce_Omnipay\Gateways\ECPayGateway;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\InstallmentFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\ECPayGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\InstallmentFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
 
 /**
  * ECPay 信用卡分期 Gateway 測試

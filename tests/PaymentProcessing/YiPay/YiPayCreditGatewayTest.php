@@ -1,10 +1,10 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\YiPay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\YiPay;
 
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\YiPayGateway;
-use Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\YiPayGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
 
 /**
  * YiPay 信用卡 Gateway 測試

@@ -1,11 +1,11 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\YiPay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\YiPay;
 
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MaxAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\YiPayGateway;
-use Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MaxAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\YiPayGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
 
 /**
  * YiPay 超商代碼 Gateway 測試

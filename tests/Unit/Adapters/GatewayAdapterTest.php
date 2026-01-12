@@ -1,13 +1,13 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\Unit\Adapters;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\Unit\Adapters;
 
 use PHPUnit\Framework\TestCase;
-use Recca0120\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
-use Recca0120\WooCommerce_Omnipay\Adapters\ECPayAdapter;
-use Recca0120\WooCommerce_Omnipay\Adapters\NewebPayAdapter;
-use Recca0120\WooCommerce_Omnipay\Adapters\YiPayAdapter;
-use Recca0120\WooCommerce_Omnipay\Tests\Unit\TestHttpClient;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\ECPayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\NewebPayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\YiPayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\Unit\TestHttpClient;
 
 /**
  * GatewayAdapter Test

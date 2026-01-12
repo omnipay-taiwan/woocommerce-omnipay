@@ -1,5 +1,5 @@
 {
-    "name": "recca0120/woocommerce-omnipay",
+    "name": "omnipay-taiwan/woocommerce-omnipay",
     "description": "WooCommerce payment gateway plugin using Omnipay library",
     "type": "wordpress-plugin",
     "license": "MIT",
@@ -27,12 +27,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Recca0120\\WooCommerce_Omnipay\\": "includes/"
+            "OmnipayTaiwan\\WooCommerce_Omnipay\\": "includes/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Recca0120\\WooCommerce_Omnipay\\Tests\\": "tests/"
+            "OmnipayTaiwan\\WooCommerce_Omnipay\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -44,9 +44,9 @@
     "extra": {
         "strauss": {
             "target_directory": "vendor-prefixed",
-            "namespace_prefix": "Recca0120\\WooCommerce_Omnipay\\Vendor\\",
-            "classmap_prefix": "Recca0120_WooCommerce_Omnipay_Vendor_",
-            "constant_prefix": "RECCA0120_WOOCOMMERCE_OMNIPAY_VENDOR_",
+            "namespace_prefix": "OmnipayTaiwan\\WooCommerce_Omnipay\\Vendor\\",
+            "classmap_prefix": "OmnipayTaiwan_WooCommerce_Omnipay_Vendor_",
+            "constant_prefix": "OMNIPAY_TAIWAN_WOOCOMMERCE_OMNIPAY_VENDOR_",
             "delete_vendor_packages": true,
             "delete_vendor_files": true,
             "include_root_autoload": true

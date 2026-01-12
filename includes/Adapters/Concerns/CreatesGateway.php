@@ -1,11 +1,11 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Adapters\Concerns;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns;
 
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Omnipay;
-use Recca0120\WooCommerce_Omnipay\Helper;
+use OmnipayTaiwan\WooCommerce_Omnipay\Helper;
 
 /**
  * Creates Gateway

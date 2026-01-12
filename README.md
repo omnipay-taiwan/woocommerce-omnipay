@@ -4,8 +4,8 @@
 
 一個彈性的 WooCommerce 付款閘道外掛，透過 [Omnipay](https://omnipay.thephpleague.com/) 付款抽象層整合多個台灣金流服務。
 
-![Tests](https://github.com/recca0120/woocommerce-omnipay/actions/workflows/tests.yml/badge.svg)
-[![codecov](https://codecov.io/gh/recca0120/woocommerce-omnipay/branch/main/graph/badge.svg)](https://codecov.io/gh/recca0120/woocommerce-omnipay)
+![Tests](https://github.com/omnipay-taiwan/woocommerce-omnipay/actions/workflows/tests.yml/badge.svg)
+[![codecov](https://codecov.io/gh/omnipay-taiwan/woocommerce-omnipay/branch/main/graph/badge.svg)](https://codecov.io/gh/omnipay-taiwan/woocommerce-omnipay)
 ![PHP Version](https://img.shields.io/badge/PHP-7.2%2B-blue)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-8.0%2B-purple)
 ![WordPress](https://img.shields.io/badge/WordPress-6.4%2B-blue)
@@ -43,7 +43,7 @@
 
 ### 從 Release 下載（建議）
 
-1. 前往 [Releases](https://github.com/recca0120/woocommerce-omnipay/releases) 頁面
+1. 前往 [Releases](https://github.com/omnipay-taiwan/woocommerce-omnipay/releases) 頁面
 2. 下載最新版本的 `woocommerce-omnipay.zip`
 3. 在 WordPress 後台 → 外掛 → 安裝外掛 → 上傳外掛
 4. 上傳 zip 檔案並啟用
@@ -51,7 +51,7 @@
 ### 透過 Composer
 
 ```bash
-composer require recca0120/woocommerce-omnipay
+composer require omnipay-taiwan/woocommerce-omnipay
 ```
 
 ### 手動安裝（開發者）
@@ -433,4 +433,4 @@ composer require omnipay/my-gateway
 
 ## 支援
 
-如有錯誤或功能建議，請使用 [GitHub Issues](https://github.com/recca0120/woocommerce-omnipay/issues)。
+如有錯誤或功能建議，請使用 [GitHub Issues](https://github.com/omnipay-taiwan/woocommerce-omnipay/issues)。

@@ -1,10 +1,10 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Settings;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Settings;
 
-use Recca0120\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
-use Recca0120\WooCommerce_Omnipay\Settings\Contracts\SettingsSectionProvider;
-use Recca0120\WooCommerce_Omnipay\WordPress\SettingsManager;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Settings\Contracts\SettingsSectionProvider;
+use OmnipayTaiwan\WooCommerce_Omnipay\WordPress\SettingsManager;
 
 /**
  * Gateway Settings Section

@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Settings\Contracts;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Settings\Contracts;
 
 /**
  * Settings Section Provider Interface

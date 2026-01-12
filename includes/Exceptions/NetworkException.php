@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Exceptions;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Exceptions;
 
 use RuntimeException;
 

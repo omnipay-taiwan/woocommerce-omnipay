@@ -1,13 +1,13 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Adapters;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Adapters;
 
-use Recca0120\WooCommerce_Omnipay\Adapters\Concerns\CreatesGateway;
-use Recca0120\WooCommerce_Omnipay\Adapters\Concerns\FormatsCallbackResponse;
-use Recca0120\WooCommerce_Omnipay\Adapters\Concerns\HandlesNotifications;
-use Recca0120\WooCommerce_Omnipay\Adapters\Concerns\HandlesPurchases;
-use Recca0120\WooCommerce_Omnipay\Adapters\Concerns\HasPaymentInfo;
-use Recca0120\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns\CreatesGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns\FormatsCallbackResponse;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns\HandlesNotifications;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns\HandlesPurchases;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Concerns\HasPaymentInfo;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
 
 /**
  * Default Gateway Adapter

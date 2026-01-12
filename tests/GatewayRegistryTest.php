@@ -1,8 +1,8 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests;
 
-use Recca0120\WooCommerce_Omnipay\GatewayRegistry;
+use OmnipayTaiwan\WooCommerce_Omnipay\GatewayRegistry;
 use WP_UnitTestCase;
 
 /**

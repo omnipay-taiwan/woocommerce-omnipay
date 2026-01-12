@@ -1,10 +1,10 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\ECPay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\ECPay;
 
-use Recca0120\WooCommerce_Omnipay\Gateways\ECPayGateway;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\FrequencyRecurringFeature;
-use Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\ECPayGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\FrequencyRecurringFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
 
 /**
  * ECPay 定期定額 Gateway 測試

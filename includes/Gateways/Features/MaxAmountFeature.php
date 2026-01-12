@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Gateways\Features;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features;
 
 use WC_Payment_Gateway;
 

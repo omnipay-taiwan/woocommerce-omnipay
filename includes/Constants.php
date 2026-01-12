@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay;
 
 /**
  * Constants

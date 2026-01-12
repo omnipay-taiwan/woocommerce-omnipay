@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing;
 
 use Omnipay\YiPay\Hasher;
 

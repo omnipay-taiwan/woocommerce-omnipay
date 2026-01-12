@@ -1,10 +1,10 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Gateways;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Gateways;
 
-use Recca0120\WooCommerce_Omnipay\Constants;
-use Recca0120\WooCommerce_Omnipay\Helper;
-use Recca0120\WooCommerce_Omnipay\Repositories\OrderRepository;
+use OmnipayTaiwan\WooCommerce_Omnipay\Constants;
+use OmnipayTaiwan\WooCommerce_Omnipay\Helper;
+use OmnipayTaiwan\WooCommerce_Omnipay\Repositories\OrderRepository;
 
 /**
  * BankTransfer Gateway
@@ -152,7 +152,7 @@ class BankTransferGateway extends OmnipayGateway
     /**
      * 取得已初始化的 Adapter（支援多帳號選擇）
      *
-     * @return \Recca0120\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter
+     * @return \OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter
      */
     protected function getAdapter()
     {

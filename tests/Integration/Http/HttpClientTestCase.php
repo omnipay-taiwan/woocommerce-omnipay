@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\Integration\Http;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\Integration\Http;
 
 use PHPUnit\Framework\TestCase;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Gateways;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Gateways;
 
 /**
  * NewebPay Gateway

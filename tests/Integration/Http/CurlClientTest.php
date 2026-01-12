@@ -1,9 +1,9 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\Integration\Http;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\Integration\Http;
 
-use Recca0120\WooCommerce_Omnipay\Exceptions\NetworkException;
-use Recca0120\WooCommerce_Omnipay\Http\CurlClient;
+use OmnipayTaiwan\WooCommerce_Omnipay\Exceptions\NetworkException;
+use OmnipayTaiwan\WooCommerce_Omnipay\Http\CurlClient;
 
 class CurlClientTest extends HttpClientTestCase
 {

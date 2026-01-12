@@ -4,8 +4,8 @@ English | [繁體中文](README.md)
 
 A flexible WooCommerce payment gateway plugin that integrates multiple Taiwan-based payment processors through the [Omnipay](https://omnipay.thephpleague.com/) payment library abstraction layer.
 
-![Tests](https://github.com/recca0120/woocommerce-omnipay/actions/workflows/tests.yml/badge.svg)
-[![codecov](https://codecov.io/gh/recca0120/woocommerce-omnipay/branch/main/graph/badge.svg)](https://codecov.io/gh/recca0120/woocommerce-omnipay)
+![Tests](https://github.com/omnipay-taiwan/woocommerce-omnipay/actions/workflows/tests.yml/badge.svg)
+[![codecov](https://codecov.io/gh/omnipay-taiwan/woocommerce-omnipay/branch/main/graph/badge.svg)](https://codecov.io/gh/omnipay-taiwan/woocommerce-omnipay)
 ![PHP Version](https://img.shields.io/badge/PHP-7.2%2B-blue)
 ![WooCommerce](https://img.shields.io/badge/WooCommerce-8.0%2B-purple)
 ![WordPress](https://img.shields.io/badge/WordPress-6.4%2B-blue)
@@ -43,7 +43,7 @@ A flexible WooCommerce payment gateway plugin that integrates multiple Taiwan-ba
 
 ### Download from Release (Recommended)
 
-1. Go to the [Releases](https://github.com/recca0120/woocommerce-omnipay/releases) page
+1. Go to the [Releases](https://github.com/omnipay-taiwan/woocommerce-omnipay/releases) page
 2. Download the latest `woocommerce-omnipay.zip`
 3. In WordPress admin → Plugins → Add New → Upload Plugin
 4. Upload the zip file and activate
@@ -51,7 +51,7 @@ A flexible WooCommerce payment gateway plugin that integrates multiple Taiwan-ba
 ### Via Composer
 
 ```bash
-composer require recca0120/woocommerce-omnipay
+composer require omnipay-taiwan/woocommerce-omnipay
 ```
 
 ### Manual Installation (Developers)
@@ -433,4 +433,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-For bugs and feature requests, please use the [GitHub Issues](https://github.com/recca0120/woocommerce-omnipay/issues).
+For bugs and feature requests, please use the [GitHub Issues](https://github.com/omnipay-taiwan/woocommerce-omnipay/issues).

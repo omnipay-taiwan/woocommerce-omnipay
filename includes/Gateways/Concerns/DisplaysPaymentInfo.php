@@ -1,8 +1,8 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Gateways\Concerns;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Concerns;
 
-use Recca0120\WooCommerce_Omnipay\Repositories\OrderRepository;
+use OmnipayTaiwan\WooCommerce_Omnipay\Repositories\OrderRepository;
 
 /**
  * 付款資訊顯示 Trait

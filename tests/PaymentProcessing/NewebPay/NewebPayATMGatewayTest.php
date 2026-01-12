@@ -1,12 +1,12 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\NewebPay;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\NewebPay;
 
 use Omnipay\NewebPay\Encryptor;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MaxAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
-use Recca0120\WooCommerce_Omnipay\Gateways\NewebPayGateway;
-use Recca0120\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MaxAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\Features\MinAmountFeature;
+use OmnipayTaiwan\WooCommerce_Omnipay\Gateways\NewebPayGateway;
+use OmnipayTaiwan\WooCommerce_Omnipay\Tests\PaymentProcessing\TestCase;
 
 /**
  * NewebPay ATM Gateway 測試

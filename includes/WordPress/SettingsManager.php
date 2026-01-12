@@ -1,6 +1,6 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\WordPress;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\WordPress;
 
 /**
  * Settings Manager

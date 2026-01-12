@@ -1,8 +1,8 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Settings;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Settings;
 
-use Recca0120\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\Contracts\GatewayAdapter;
 
 /**
  * BankTransfer Settings Section

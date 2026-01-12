@@ -1,12 +1,12 @@
 <?php
 
-namespace Recca0120\WooCommerce_Omnipay\Tests\Settings;
+namespace OmnipayTaiwan\WooCommerce_Omnipay\Tests\Settings;
 
-use Recca0120\WooCommerce_Omnipay\Adapters\DefaultGatewayAdapter;
-use Recca0120\WooCommerce_Omnipay\Http\WordPressClient;
-use Recca0120\WooCommerce_Omnipay\Settings\GatewaySettingsSection;
-use Recca0120\WooCommerce_Omnipay\Settings\GeneralSettingsSection;
-use Recca0120\WooCommerce_Omnipay\SharedSettingsPage;
+use OmnipayTaiwan\WooCommerce_Omnipay\Adapters\DefaultGatewayAdapter;
+use OmnipayTaiwan\WooCommerce_Omnipay\Http\WordPressClient;
+use OmnipayTaiwan\WooCommerce_Omnipay\Settings\GatewaySettingsSection;
+use OmnipayTaiwan\WooCommerce_Omnipay\Settings\GeneralSettingsSection;
+use OmnipayTaiwan\WooCommerce_Omnipay\SharedSettingsPage;
 use WP_UnitTestCase;
 
 /**
