@@ -27,8 +27,13 @@ class BankTransferGateway extends OmnipayGateway
     {
         parent::__construct($config);
 
-        // 註冊匯款帳號後5碼的 AJAX 處理
+        // 註冊匯款帳號後5碼的 AJAX 處理（前台）
         add_action('woocommerce_api_'.$this->id.'_remittance', [$this, 'handleRemittance']);
+
+        // admin 訂單編輯：顯示 inline 欄位 + 儲存
+        add_action('woocommerce_admin_order_data_after_billing_address', [$this, 'display_remittance_last5_admin_field'], 20);
+        add_action('woocommerce_process_shop_order_meta', [$this, 'save_remittance_last5_admin']);       // classic
+        add_action('woocommerce_admin_order_save_action', [$this, 'save_remittance_last5_admin']);       // HPOS
     }
 
     /**
@@ -86,12 +91,13 @@ class BankTransferGateway extends OmnipayGateway
             'labels' => $this->getBankTransferLabels(),
         ]);
 
-        // 純文字模式或非此 gateway 的訂單不顯示表單
-        if ($plainText || $order->get_payment_method() !== $this->id) {
+        // 純文字模式、admin 或非此 gateway 的訂單不顯示前台表單
+        // admin 另有 display_remittance_last5_admin_field 以 inline 欄位處理
+        if ($plainText || is_admin() || $order->get_payment_method() !== $this->id) {
             return $output;
         }
 
-        // 加入匯款帳號後5碼表單
+        // 加入匯款帳號後5碼表單（前台）
         $output .= $this->getRemittanceFormOutput($order);
 
         return $output;
@@ -127,6 +133,11 @@ class BankTransferGateway extends OmnipayGateway
             return;
         }
 
+        // 若輸入超過指定位數且全為數字，自動截取最後 N 碼
+        if (strlen($last5) > Constants::REMITTANCE_LAST_DIGITS && ctype_digit($last5)) {
+            $last5 = substr($last5, -Constants::REMITTANCE_LAST_DIGITS);
+        }
+
         // 驗證格式（必須是指定位數的數字）
         $pattern = sprintf('/^\d{%d}$/', Constants::REMITTANCE_LAST_DIGITS);
         if (! preg_match($pattern, $last5)) {
@@ -147,6 +158,96 @@ class BankTransferGateway extends OmnipayGateway
         // 從 referer 取得原始頁面 URL，優先導回原頁面
         $referer = wp_get_referer();
         $this->redirectAndExit($referer ?: $redirect_url);
+    }
+
+    /**
+     * 覆寫 trait 的 display_payment_info_admin，改用 WC admin form-field 格式
+     * 避免前台樣式的 <section>/<table> 跑進 admin 帳單欄位
+     *
+     * @param  \WC_Order  $order
+     */
+    public function display_payment_info_admin($order)
+    {
+        if ($order->get_payment_method() !== $this->id) {
+            return;
+        }
+
+        $bankCode = $order->get_meta(OrderRepository::META_BANK_CODE);
+        $bankAccount = $order->get_meta(OrderRepository::META_BANK_ACCOUNT);
+        $formattedAccount = $this->formatBankAccount($bankCode, $bankAccount);
+
+        if (empty($formattedAccount)) {
+            return;
+        }
+
+        echo '<p class="form-field">';
+        echo '<label>' . esc_html__('Account Number', 'woocommerce-omnipay') . '</label>';
+        echo '<strong>' . esc_html($formattedAccount) . '</strong>';
+        echo '</p>';
+    }
+
+    /**
+     * 在管理後台訂單編輯頁顯示匯款帳號後碼 inline 輸入欄位
+     * （不使用獨立 <form>，直接嵌入 WC order edit form 以避免巢狀 form 問題）
+     *
+     * @param  \WC_Order  $order
+     */
+    public function display_remittance_last5_admin_field($order)
+    {
+        if ($order->get_payment_method() !== $this->id) {
+            return;
+        }
+
+        $last5 = $order->get_meta(OrderRepository::META_REMITTANCE_LAST5);
+        $label = sprintf(
+            __('Last %d Digits of Remittance Account', 'woocommerce-omnipay'),
+            Constants::REMITTANCE_LAST_DIGITS
+        );
+
+        echo '<p class="form-field">';
+        echo '<label>' . esc_html($label) . '</label>';
+        echo '<input type="text" name="' . esc_attr(OrderRepository::META_REMITTANCE_LAST5) . '"'
+            . ' value="' . esc_attr($last5) . '"'
+            . ' maxlength="20" class="short">';
+        echo '</p>';
+    }
+
+    /**
+     * 儲存管理後台訂單編輯頁的匯款帳號後碼
+     * 同時支援 classic（order ID）與 HPOS（WC_Order）
+     *
+     * @param  int|\WC_Order  $order_or_id
+     */
+    public function save_remittance_last5_admin($order_or_id)
+    {
+        if (! isset($_POST[OrderRepository::META_REMITTANCE_LAST5])) {
+            return;
+        }
+
+        $order = wc_get_order($order_or_id);
+        if (! $order || $order->get_payment_method() !== $this->id) {
+            return;
+        }
+
+        $last5 = sanitize_text_field($_POST[OrderRepository::META_REMITTANCE_LAST5]);
+
+        // 若輸入超過指定位數且全為數字，自動截取最後 N 碼
+        if (strlen($last5) > Constants::REMITTANCE_LAST_DIGITS && ctype_digit($last5)) {
+            $last5 = substr($last5, -Constants::REMITTANCE_LAST_DIGITS);
+        }
+
+        // 空白 → 清除舊值
+        if (empty($last5)) {
+            $order->delete_meta_data(OrderRepository::META_REMITTANCE_LAST5);
+            $order->save();
+
+            return;
+        }
+
+        $pattern = sprintf('/^\d{%d}$/', Constants::REMITTANCE_LAST_DIGITS);
+        if (preg_match($pattern, $last5)) {
+            $this->orders->saveRemittanceLast5($order, $last5);
+        }
     }
 
     /**

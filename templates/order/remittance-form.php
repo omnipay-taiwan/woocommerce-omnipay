@@ -29,7 +29,7 @@ if ($submitted_last5) {
         <?php wp_nonce_field('omnipay_remittance_nonce', 'nonce'); ?>
         <p class="form-row form-row-wide">
             <label for="remittance_last5"><?php echo sprintf(esc_html__('Last %d Digits of Remittance Account', 'woocommerce-omnipay'), $last_digits); ?> <span class="required">*</span></label>
-            <input type="text" id="remittance_last5" name="remittance_last5" class="input-text" maxlength="<?php echo esc_attr($last_digits); ?>" pattern="\d{<?php echo esc_attr($last_digits); ?>}" required>
+            <input type="text" id="remittance_last5" name="remittance_last5" class="input-text" maxlength="20" required>
         </p>
         <p class="form-row">
             <button type="submit" class="button alt"><?php esc_html_e('Submit', 'woocommerce-omnipay'); ?></button>

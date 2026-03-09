@@ -190,6 +190,30 @@ class BankTransferTest extends TestCase
         $this->assertNotEmpty($notices);
     }
 
+    public function test_submit_remittance_full_account_extracts_last5()
+    {
+        $order = $this->createSimpleOrder(1000);
+        $order->update_meta_data('_omnipay_bank_code', '012');
+        $order->set_payment_method($this->gateway->id);
+        $order->save();
+
+        $_POST = [
+            'order_id' => $order->get_id(),
+            'order_key' => $order->get_order_key(),
+            'remittance_last5' => '0123456789012345', // 全碼 16 位
+            'nonce' => wp_create_nonce('omnipay_remittance_nonce'),
+        ];
+
+        add_filter('wp_redirect', '__return_false');
+        add_filter('woocommerce_omnipay_should_exit', '__return_false');
+        wc_clear_notices();
+
+        $this->gateway->handleRemittance();
+
+        // 驗證自動截取最後 5 碼
+        $this->assertEquals('12345', wc_get_order($order->get_id())->get_meta('_omnipay_remittance_last5'));
+    }
+
     public function test_submit_remittance_last5_validates_format()
     {
         $order = $this->createSimpleOrder(1000);
